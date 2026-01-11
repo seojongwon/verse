@@ -1,0 +1,227 @@
+@page "/admin/use"
+@page "/admin/use/{UsePurpose}"
+@attribute [Authorize]
+@using RetreatVerses.App.Data
+@inject IDataStore DataStore
+
+<h3>관리자 암송 처리</h3>
+
+<p class="text-muted">조와 사용 용도를 선택하면 암송 처리 가능한 말씀이 표시됩니다.</p>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-4">
+        <label class="form-label">조 선택</label>
+        <select class="form-select" @onchange="OnGroupChanged">
+            <option value="">조를 선택하세요</option>
+            @foreach (var group in groups)
+            {
+                <option value="@group.Id" selected="@(selectedGroupId == group.Id.ToString())">@group.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-8">
+        <label class="form-label">사용 페이지 선택</label>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-primary" href="/admin/use/meal">식사사용</a>
+            <a class="btn btn-outline-primary" href="/admin/use/snack">간식사용</a>
+            <a class="btn btn-outline-primary" href="/admin/use/sleep">취침사용</a>
+        </div>
+    </div>
+</div>
+
+@if (activeUseOption != null)
+{
+    <div class="mb-3">
+        <span class="badge bg-primary">@activeUseOption.Label</span>
+        <span class="text-muted ms-2">허용 용도: @string.Join(", ", activeUseOption.AllowedTypes)</span>
+    </div>
+}
+else
+{
+    <p class="text-muted">사용 페이지를 먼저 선택해 주세요.</p>
+}
+
+@if (!string.IsNullOrWhiteSpace(actionMessage))
+{
+    <div class="alert @(actionSuccess ? "alert-success" : "alert-danger")">@actionMessage</div>
+}
+
+@if (selectedGroup == null)
+{
+    <p class="text-muted">조를 선택해 주세요.</p>
+}
+else if (activeUseOption == null)
+{
+    <p class="text-muted">사용 페이지를 선택해 주세요.</p>
+}
+else if (available.Count == 0)
+{
+    <p class="text-muted">암송 처리 가능한 말씀이 없습니다.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>말씀</th>
+                <th>용도</th>
+                <th>등록 시간</th>
+                <th class="text-end">작업</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in available)
+            {
+                <tr>
+                    <td>@item.Text</td>
+                    <td>@item.Type</td>
+                    <td>@item.RegisteredAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-warning" @onclick="() => ReciteAsync(item)">암송 처리</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code {
+    [Parameter] public string? UsePurpose { get; set; }
+
+    private List<Group> groups = new List<Group>();
+    private List<Registration> registrations = new List<Registration>();
+    private Dictionary<Guid, Verse> verseMap = new Dictionary<Guid, Verse>();
+    private List<AvailableVerse> available = new List<AvailableVerse>();
+    private string? selectedGroupId;
+    private Group? selectedGroup;
+    private string? actionMessage;
+    private bool actionSuccess;
+    private UseOption? activeUseOption;
+
+    private static readonly IReadOnlyList<UseOption> UseOptions = new List<UseOption>
+    {
+        new UseOption("meal", "식사사용", new[] { "식사용" }),
+        new UseOption("snack", "간식사용", new[] { "식사용", "간식용" }),
+        new UseOption("sleep", "취침사용", new[] { "취침용" })
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        ResolveUseOption();
+        groups = (await DataStore.GetGroupsAsync()).ToList();
+    }
+
+    protected override void OnParametersSet()
+    {
+        ResolveUseOption();
+        if (selectedGroup != null)
+        {
+            FilterAvailable();
+        }
+    }
+
+    private void ResolveUseOption()
+    {
+        if (string.IsNullOrWhiteSpace(UsePurpose))
+        {
+            activeUseOption = null;
+            return;
+        }
+
+        activeUseOption = UseOptions.FirstOrDefault(o =>
+            string.Equals(o.Key, UsePurpose.Trim(), StringComparison.OrdinalIgnoreCase));
+    }
+
+    private async Task OnGroupChanged(ChangeEventArgs args)
+    {
+        selectedGroupId = args.Value?.ToString();
+        actionMessage = null;
+
+        if (!Guid.TryParse(selectedGroupId, out var groupId))
+        {
+            selectedGroup = null;
+            available.Clear();
+            registrations.Clear();
+            return;
+        }
+
+        selectedGroup = groups.FirstOrDefault(g => g.Id == groupId);
+        if (selectedGroup == null)
+        {
+            available.Clear();
+            registrations.Clear();
+            return;
+        }
+
+        registrations = (await DataStore.GetRegistrationsForGroupAsync(groupId)).ToList();
+        verseMap = (await DataStore.GetVersesAsync()).ToDictionary(v => v.Id, v => v);
+        FilterAvailable();
+    }
+
+    private void FilterAvailable()
+    {
+        if (selectedGroup == null || activeUseOption == null)
+        {
+            available.Clear();
+            return;
+        }
+
+        var allowedTypes = activeUseOption.AllowedTypes;
+        available = registrations
+            .Where(r => !r.UsedAt.HasValue && !r.RecitedAt.HasValue)
+            .Where(r => verseMap.TryGetValue(r.VerseId, out var verse)
+                && allowedTypes.Contains(verse.Type, StringComparer.OrdinalIgnoreCase))
+            .Select(r =>
+            {
+                var verse = verseMap[r.VerseId];
+                return new AvailableVerse
+                {
+                    VerseId = verse.Id,
+                    Text = verse.Text,
+                    Type = verse.Type,
+                    RegisteredAt = r.RegisteredAt
+                };
+            })
+            .OrderBy(v => v.RegisteredAt)
+            .ToList();
+    }
+
+    private async Task ReciteAsync(AvailableVerse item)
+    {
+        if (selectedGroup == null)
+        {
+            return;
+        }
+
+        var result = await DataStore.ReciteVerseAsync(selectedGroup.Id, item.VerseId);
+        actionMessage = result.Message;
+        actionSuccess = result.Success;
+
+        registrations = (await DataStore.GetRegistrationsForGroupAsync(selectedGroup.Id)).ToList();
+        FilterAvailable();
+    }
+
+
+    private sealed class AvailableVerse
+    {
+        public Guid VerseId { get; set; }
+        public string Text { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public DateTime RegisteredAt { get; set; }
+    }
+
+    private sealed class UseOption
+    {
+        public UseOption(string key, string label, IReadOnlyList<string> allowedTypes)
+        {
+            Key = key;
+            Label = label;
+            AllowedTypes = allowedTypes;
+        }
+
+        public string Key { get; }
+        public string Label { get; }
+        public IReadOnlyList<string> AllowedTypes { get; }
+    }
+}

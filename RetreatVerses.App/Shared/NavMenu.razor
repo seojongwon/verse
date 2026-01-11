@@ -1,0 +1,55 @@
+<div class="top-row pl-4 navbar navbar-dark">
+    <a class="navbar-brand" href="">수련회 말씀</a>
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <ul class="nav flex-column">
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                홈
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="admin/groups">
+                조 관리
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="admin">
+                대시보드
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="admin/use">
+                암송 처리
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="admin/verses">
+                말씀 관리
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="admin/qr">
+                QR 링크
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <a class="nav-link" href="admin/logout">로그아웃</a>
+        </li>
+    </ul>
+</div>
+
+@code {
+    private bool collapseNavMenu;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : "collapse show";
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

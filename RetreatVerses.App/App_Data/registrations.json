@@ -1,0 +1,16 @@
+[
+  {
+    "groupId": "7151285b-ce6c-4733-bac0-929cfd59f4ff",
+    "verseId": "88573f47-f152-42bb-9ff3-18b01db9e174",
+    "registeredAt": "2026-01-09T07:22:05.5389766Z",
+    "usedAt": null,
+    "recitedAt": null
+  },
+  {
+    "groupId": "18d76526-ac52-43e1-841c-a33bfb847a4f",
+    "verseId": "88573f47-f152-42bb-9ff3-18b01db9e174",
+    "registeredAt": "2026-01-09T08:21:20.1604276Z",
+    "usedAt": "2026-01-09T08:22:00.1121769Z",
+    "recitedAt": null
+  }
+]

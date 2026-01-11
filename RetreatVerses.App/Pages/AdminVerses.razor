@@ -1,0 +1,206 @@
+@page "/admin/verses"
+@attribute [Authorize]
+@using RetreatVerses.App.Data
+@inject IDataStore DataStore
+
+<h3>말씀 관리</h3>
+
+<div class="mb-3">
+    <label class="form-label">새 말씀</label>
+    <textarea class="form-control" rows="2" @bind="newVerseText" placeholder="말씀을 입력하세요"></textarea>
+    <div class="d-flex gap-2 mt-2">
+        <select class="form-select w-auto" @bind="newVerseType">
+            @foreach (var purpose in purposes)
+            {
+                <option value="@purpose">@purpose</option>
+            }
+        </select>
+        <button class="btn btn-primary" @onclick="AddVerseAsync">추가</button>
+    </div>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">말씀 용도 추가</label>
+    <div class="d-flex gap-2">
+        <input class="form-control" @bind="newPurpose" placeholder="예: 말씀암송용" />
+        <button class="btn btn-outline-primary" @onclick="AddPurposeAsync">용도 추가</button>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(purposeMessage))
+    {
+        <small class="text-muted">@purposeMessage</small>
+    }
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-3">
+    <button class="btn btn-outline-danger" disabled="@(selectedVerseIds.Count == 0)" @onclick="DeleteSelectedAsync">선택 삭제</button>
+    <button class="btn btn-outline-danger" disabled="@(verses.Count == 0)" @onclick="DeleteAllAsync">전체 삭제</button>
+</div>
+
+@if (verses.Count == 0)
+{
+    <p class="text-muted">등록된 말씀이 없습니다.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>
+                    <input type="checkbox" @bind="IsAllSelected" />
+                </th>
+                <th>말씀</th>
+                <th>유형</th>
+                <th>작업</th>
+                <th>말씀 ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var verse in verses)
+            {
+                <tr>
+                    <td>
+                        <input type="checkbox" checked="@selectedVerseIds.Contains(verse.Id)" @onchange="(e => ToggleVerseSelection(verse.Id, e))" />
+                    </td>
+                    <td style="min-width: 300px;">
+                        <textarea class="form-control" rows="2" @bind="verse.Text"></textarea>
+                    </td>
+                    <td>
+                        <select class="form-select" @bind="verse.Type">
+                            @foreach (var purpose in purposes)
+                            {
+                                <option value="@purpose">@purpose</option>
+                            }
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => SaveVerseAsync(verse)">저장</button>
+                        <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteVerseAsync(verse)">삭제</button>
+                    </td>
+                    <td class="text-muted">@verse.Id</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Verse> verses = new List<Verse>();
+    private List<string> purposes = new List<string>();
+    private string newVerseText = string.Empty;
+    private string newVerseType = string.Empty;
+    private string newPurpose = string.Empty;
+    private string? purposeMessage;
+    private HashSet<Guid> selectedVerseIds = new HashSet<Guid>();
+    private bool isAllSelected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadAsync();
+    }
+
+    private async Task AddVerseAsync()
+    {
+        if (string.IsNullOrWhiteSpace(newVerseText) || string.IsNullOrWhiteSpace(newVerseType))
+        {
+            return;
+        }
+
+        await DataStore.AddVerseAsync(newVerseText, newVerseType);
+        newVerseText = string.Empty;
+        await ReloadAsync();
+    }
+
+    private async Task SaveVerseAsync(Verse verse)
+    {
+        await DataStore.UpdateVerseAsync(verse.Id, verse.Text, verse.Type);
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        verses = (await DataStore.GetVersesAsync()).ToList();
+        purposes = (await DataStore.GetVersePurposesAsync()).ToList();
+        if (purposes.Count > 0 && string.IsNullOrWhiteSpace(newVerseType))
+        {
+            newVerseType = purposes[0];
+        }
+        SyncSelection();
+    }
+
+    private async Task DeleteVerseAsync(Verse verse)
+    {
+        await DataStore.DeleteVerseAsync(verse.Id);
+        await ReloadAsync();
+    }
+
+    private async Task AddPurposeAsync()
+    {
+        purposeMessage = null;
+        if (string.IsNullOrWhiteSpace(newPurpose))
+        {
+            purposeMessage = "용도를 입력해 주세요.";
+            return;
+        }
+
+        var added = await DataStore.AddVersePurposeAsync(newPurpose);
+        purposeMessage = added ? "용도가 추가되었습니다." : "이미 존재하는 용도입니다.";
+        newPurpose = string.Empty;
+        await ReloadAsync();
+    }
+
+    private async Task DeleteSelectedAsync()
+    {
+        if (selectedVerseIds.Count == 0)
+        {
+            return;
+        }
+
+        await DataStore.DeleteVersesAsync(selectedVerseIds);
+        await ReloadAsync();
+    }
+
+    private async Task DeleteAllAsync()
+    {
+        await DataStore.DeleteAllVersesAsync();
+        await ReloadAsync();
+    }
+
+    private void ToggleVerseSelection(Guid id, ChangeEventArgs args)
+    {
+        if (args.Value is bool isChecked && isChecked)
+        {
+            selectedVerseIds.Add(id);
+        }
+        else
+        {
+            selectedVerseIds.Remove(id);
+        }
+
+        isAllSelected = verses.Count > 0 && selectedVerseIds.Count == verses.Count;
+    }
+
+    private void SyncSelection()
+    {
+        selectedVerseIds = selectedVerseIds
+            .Where(id => verses.Any(v => v.Id == id))
+            .ToHashSet();
+        isAllSelected = verses.Count > 0 && selectedVerseIds.Count == verses.Count;
+    }
+
+    private bool IsAllSelected
+    {
+        get => isAllSelected;
+        set
+        {
+            isAllSelected = value;
+            if (isAllSelected)
+            {
+                selectedVerseIds = verses.Select(v => v.Id).ToHashSet();
+            }
+            else
+            {
+                selectedVerseIds.Clear();
+            }
+        }
+    }
+}

@@ -1,0 +1,147 @@
+@page "/admin"
+@attribute [Authorize]
+@using RetreatVerses.App.Data
+@inject IDataStore DataStore
+
+<h3>관리자 대시보드</h3>
+
+@if (stats.Count == 0)
+{
+    <p class="text-muted">통계 정보가 없습니다.</p>
+}
+else
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">말씀 많이 등록된 조</h5>
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var item in topByRegistrations)
+                        {
+                            <li class="d-flex justify-content-between">
+                                <span>@item.GroupName</span>
+                                <span class="text-muted">@item.Total</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">말씀 사용 많은 조</h5>
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var item in topByUsed)
+                        {
+                            <li class="d-flex justify-content-between">
+                                <span>@item.GroupName</span>
+                                <span class="text-muted">@item.Used</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">말씀 암송 많은 조</h5>
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var item in topByRecited)
+                        {
+                            <li class="d-flex justify-content-between">
+                                <span>@item.GroupName</span>
+                                <span class="text-muted">@item.Recited</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>조 이름</th>
+                <th>등록</th>
+                <th>사용</th>
+                <th>암송</th>
+                <th>미처리</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in stats)
+            {
+                <tr>
+                    <td>@item.GroupName</td>
+                    <td>@item.Total</td>
+                    <td>@item.Used</td>
+                    <td>@item.Recited</td>
+                    <td>@item.Pending</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<GroupStat> stats = new List<GroupStat>();
+    private List<GroupStat> topByRegistrations = new List<GroupStat>();
+    private List<GroupStat> topByUsed = new List<GroupStat>();
+    private List<GroupStat> topByRecited = new List<GroupStat>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var groups = await DataStore.GetGroupsAsync();
+        var registrations = await DataStore.GetRegistrationsAsync();
+
+        stats = groups
+            .Select(group =>
+            {
+                var groupRegistrations = registrations.Where(r => r.GroupId == group.Id).ToList();
+                var used = groupRegistrations.Count(r => r.UsedAt.HasValue);
+                var recited = groupRegistrations.Count(r => r.RecitedAt.HasValue);
+                var total = groupRegistrations.Count;
+                return new GroupStat
+                {
+                    GroupName = group.Name,
+                    Total = total,
+                    Used = used,
+                    Recited = recited,
+                    Pending = total - used - recited
+                };
+            })
+            .OrderByDescending(s => s.Total)
+            .ToList();
+
+        topByRegistrations = stats
+            .OrderByDescending(s => s.Total)
+            .ThenBy(s => s.GroupName)
+            .Take(5)
+            .ToList();
+
+        topByUsed = stats
+            .OrderByDescending(s => s.Used)
+            .ThenBy(s => s.GroupName)
+            .Take(5)
+            .ToList();
+
+        topByRecited = stats
+            .OrderByDescending(s => s.Recited)
+            .ThenBy(s => s.GroupName)
+            .Take(5)
+            .ToList();
+    }
+
+    private sealed class GroupStat
+    {
+        public string GroupName { get; set; } = string.Empty;
+        public int Total { get; set; }
+        public int Used { get; set; }
+        public int Recited { get; set; }
+        public int Pending { get; set; }
+    }
+}

@@ -1,0 +1,56 @@
+@page "/admin/qr"
+@attribute [Authorize]
+@using RetreatVerses.App.Data
+@inject IDataStore DataStore
+@inject NavigationManager NavigationManager
+
+<h3>QR 링크 생성</h3>
+
+<p class="text-muted">말씀을 선택하면 QR에 넣을 링크가 생성됩니다.</p>
+
+<div class="row g-3">
+    <div class="col-md-8">
+        <label class="form-label">말씀 선택</label>
+        <select class="form-select" @bind="selectedVerseId">
+            <option value="">말씀을 선택하세요</option>
+            @foreach (var verse in verses)
+            {
+                <option value="@verse.Id">@verse.Text (@verse.Type)</option>
+            }
+        </select>
+    </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(QrUrl))
+{
+    <div class="mt-4">
+        <label class="form-label">QR 등록 링크</label>
+        <input class="form-control" readonly value="@QrUrl" />
+        <small class="text-muted">이 링크로 QR 코드를 생성하세요.</small>
+    </div>
+}
+
+@code {
+    private List<Verse> verses = new List<Verse>();
+
+    private string? selectedVerseId;
+
+    private string? QrUrl
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(selectedVerseId))
+            {
+                return null;
+            }
+
+            var baseUri = NavigationManager.BaseUri.TrimEnd('/');
+            return $"{baseUri}/qr/{selectedVerseId}";
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        verses = (await DataStore.GetVersesAsync()).ToList();
+    }
+}

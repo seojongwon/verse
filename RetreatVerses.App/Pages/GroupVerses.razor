@@ -1,0 +1,122 @@
+@page "/group/{GroupId:guid}/verses"
+@using RetreatVerses.App.Data
+@inject IDataStore DataStore
+
+<h3>조별 말씀 목록</h3>
+
+@if (group == null)
+{
+    <p class="text-muted">조 정보를 찾을 수 없습니다.</p>
+}
+else
+{
+    <p><strong>@group.Name</strong> 조의 등록된 말씀입니다.</p>
+    <p>
+        <a class="btn btn-outline-primary" href="/use">말씀 사용하기</a>
+    </p>
+
+    @if (items.Count == 0)
+    {
+        <p class="text-muted">등록된 말씀이 없습니다.</p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>말씀</th>
+                    <th>유형</th>
+                    <th>등록 시간</th>
+                    <th>사용 상태</th>
+                    <th>작업</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in items)
+                {
+                    <tr>
+                        <td>@item.Text</td>
+                        <td>@item.Type</td>
+                        <td>@item.RegisteredAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>
+                            @if (item.UsedAt.HasValue)
+                            {
+                                <span class="text-muted">사용됨 (@item.UsedAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm"))</span>
+                            }
+                            else if (item.RecitedAt.HasValue)
+                            {
+                                <span class="text-warning">암송됨 (@item.RecitedAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm"))</span>
+                            }
+                            else
+                            {
+                                <span class="text-success">사용 가능</span>
+                            }
+                        </td>
+                        <td>
+                            @if (item.UsedAt.HasValue || item.RecitedAt.HasValue)
+                            {
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => ResetStatusAsync(item)">되돌리기</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    [Parameter] public Guid GroupId { get; set; }
+
+    private Group? group;
+    private List<VerseStatus> items = new List<VerseStatus>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var groups = await DataStore.GetGroupsAsync();
+        group = groups.FirstOrDefault(g => g.Id == GroupId);
+        if (group == null)
+        {
+            return;
+        }
+
+        var verses = await DataStore.GetVersesAsync();
+        var verseMap = verses.ToDictionary(v => v.Id, v => v);
+        var registrations = await DataStore.GetRegistrationsForGroupAsync(GroupId);
+
+        items = registrations
+            .Where(r => verseMap.ContainsKey(r.VerseId))
+            .Select(r =>
+            {
+                var verse = verseMap[r.VerseId];
+                return new VerseStatus
+                {
+                    Text = verse.Text,
+                    Type = verse.Type,
+                    RegisteredAt = r.RegisteredAt,
+                    UsedAt = r.UsedAt,
+                    RecitedAt = r.RecitedAt,
+                    VerseId = verse.Id
+                };
+            })
+            .OrderByDescending(i => i.RegisteredAt)
+            .ToList();
+    }
+
+    private async Task ResetStatusAsync(VerseStatus item)
+    {
+        await DataStore.ResetVerseStatusAsync(GroupId, item.VerseId);
+        await OnInitializedAsync();
+    }
+
+    private sealed class VerseStatus
+    {
+        public Guid VerseId { get; set; }
+        public string Text { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public DateTime RegisteredAt { get; set; }
+        public DateTime? UsedAt { get; set; }
+        public DateTime? RecitedAt { get; set; }
+    }
+
+}

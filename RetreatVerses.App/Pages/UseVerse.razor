@@ -1,0 +1,314 @@
+@page "/use"
+@page "/use/{UsePurpose}"
+@page "/use/{GroupId:guid}"
+@page "/use/{UsePurpose}/{GroupId:guid}"
+@using RetreatVerses.App.Data
+@inject IDataStore DataStore
+
+<section class="use-verse">
+    <header class="use-verse__header">
+        <p class="use-verse__eyebrow">말씀 사용</p>
+        @if (group != null)
+        {
+            <h3 class="use-verse__title">@group.Name 조</h3>
+            <p class="use-verse__subtitle">등록된 말씀 중 필요한 유형을 선택해 사용하세요.</p>
+        }
+        else
+        {
+            <h3 class="use-verse__title">말씀 사용</h3>
+            @if (activeUseOption != null)
+            {
+                <p class="use-verse__subtitle">@activeUseOption.Label 페이지입니다.</p>
+            }
+        }
+    </header>
+
+    <div class="use-verse__panel">
+        <div class="use-verse__meta">
+            <span class="use-verse__chip">그룹 이름으로 조회</span>
+            @if (group != null)
+            {
+                <span class="use-verse__chip use-verse__chip--outline">@group.Name 조</span>
+            }
+            @if (activeUseOption != null)
+            {
+                <span class="use-verse__chip use-verse__chip--outline">@activeUseOption.Label</span>
+            }
+        </div>
+
+        @if (activeUseOption == null)
+        {
+            <div class="use-verse__selector">
+                <span class="use-verse__label">사용 페이지 선택</span>
+                <div class="use-verse__buttons" role="group" aria-label="사용 페이지 선택">
+                    <a class="use-verse__button" href="/use/meal">식사사용</a>
+                    <a class="use-verse__button" href="/use/snack">간식사용</a>
+                    <a class="use-verse__button" href="/use/sleep">취침사용</a>
+                </div>
+            </div>
+        }
+
+        <div class="use-verse__search">
+            <label class="use-verse__label" for="groupNameInput">조 이름 입력</label>
+            <div class="use-verse__search-row">
+                <input id="groupNameInput" class="use-verse__input" placeholder="예: 1조" @bind="groupNameInput" />
+                <button type="button" class="use-verse__button use-verse__button--solid" @onclick="FindGroupByNameAsync">
+                    찾기
+                </button>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(searchMessage))
+            {
+                <div class="use-verse__search-message">@searchMessage</div>
+            }
+        </div>
+
+        @if (group != null && purposes.Count > 0 && activeUseOption == null)
+        {
+            <div class="use-verse__selector">
+                <span class="use-verse__label">유형 선택</span>
+                <div class="use-verse__buttons" role="group" aria-label="유형 선택">
+                    @foreach (var purpose in purposes)
+                    {
+                        <button type="button"
+                                class="use-verse__button @(selectedType == purpose ? "is-active" : null)"
+                                aria-pressed="@(selectedType == purpose)"
+                                @onclick="() => SetType(purpose)">
+                            @purpose
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (group != null && activeUseOption != null)
+        {
+            <div class="use-verse__selector">
+                <span class="use-verse__label">사용 가능 용도</span>
+                <div class="use-verse__buttons" role="group" aria-label="사용 가능 용도">
+                    @foreach (var purpose in activeUseOption.AllowedTypes)
+                    {
+                        <span class="use-verse__button is-active" aria-pressed="true">@purpose</span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (group == null)
+    {
+        <p class="use-verse__empty">조 이름을 입력해 말씀을 불러오세요.</p>
+    }
+    else
+    {
+        @if (!string.IsNullOrWhiteSpace(actionMessage))
+        {
+            <div class="alert use-verse__alert @(actionSuccess ? "alert-success" : "alert-danger")">@actionMessage</div>
+        }
+
+        @if (available.Count == 0)
+        {
+            <p class="use-verse__empty">사용 가능한 말씀이 없습니다.</p>
+        }
+        else
+        {
+            <div class="use-verse__table">
+                <table class="table table-borderless align-middle">
+                    <thead>
+                        <tr>
+                            <th>말씀</th>
+                            <th>등록 시간</th>
+                            <th class="text-end">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in available)
+                        {
+                            <tr>
+                                <td class="use-verse__text">@item.Text</td>
+                                <td class="use-verse__time">@item.RegisteredAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm use-verse__use-button" @onclick="() => UseAsync(item)">사용</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+</section>
+
+@code {
+    [Parameter] public Guid? GroupId { get; set; }
+    [Parameter] public string? UsePurpose { get; set; }
+
+    private Group? group;
+    private Guid resolvedGroupId;
+    private string groupNameInput = string.Empty;
+    private string? searchMessage;
+    private List<Registration> registrations = new List<Registration>();
+    private Dictionary<Guid, Verse> verseMap = new Dictionary<Guid, Verse>();
+    private string selectedType = string.Empty;
+    private List<AvailableVerse> available = new List<AvailableVerse>();
+    private string? actionMessage;
+    private bool actionSuccess;
+    private List<string> purposes = new List<string>();
+    private UseOption? activeUseOption;
+    private static readonly IReadOnlyList<UseOption> UseOptions = new List<UseOption>
+    {
+        new UseOption("meal", "식사사용", new[] { "식사용" }),
+        new UseOption("snack", "간식사용", new[] { "식사용", "간식용" }),
+        new UseOption("sleep", "취침사용", new[] { "취침용" })
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        ResolveUseOption();
+        if (GroupId.HasValue && GroupId.Value != Guid.Empty)
+        {
+            var groups = await DataStore.GetGroupsAsync();
+            group = groups.FirstOrDefault(g => g.Id == GroupId.Value);
+            if (group != null)
+            {
+                groupNameInput = group.Name;
+                await LoadGroupAsync();
+            }
+        }
+    }
+
+    private void FilterAvailable()
+    {
+        var allowedTypes = GetAllowedTypes();
+        available = registrations
+            .Where(r => !r.UsedAt.HasValue && !r.RecitedAt.HasValue)
+            .Where(r => verseMap.TryGetValue(r.VerseId, out var verse) && allowedTypes.Contains(verse.Type, StringComparer.OrdinalIgnoreCase))
+            .Select(r =>
+            {
+                var verse = verseMap[r.VerseId];
+                return new AvailableVerse
+                {
+                    VerseId = verse.Id,
+                    Text = verse.Text,
+                    RegisteredAt = r.RegisteredAt
+                };
+            })
+            .OrderBy(v => v.RegisteredAt)
+            .ToList();
+    }
+
+    private void SetType(string type)
+    {
+        if (selectedType == type)
+        {
+            return;
+        }
+
+        selectedType = type;
+        FilterAvailable();
+    }
+
+    private async Task UseAsync(AvailableVerse item)
+    {
+        if (group == null)
+        {
+            return;
+        }
+
+        var result = await DataStore.UseVerseAsync(resolvedGroupId, item.VerseId);
+        actionMessage = result.Message;
+        actionSuccess = result.Success;
+
+        registrations = (await DataStore.GetRegistrationsForGroupAsync(resolvedGroupId)).ToList();
+        FilterAvailable();
+    }
+
+    private async Task FindGroupByNameAsync()
+    {
+        searchMessage = null;
+        actionMessage = null;
+
+        if (string.IsNullOrWhiteSpace(groupNameInput))
+        {
+            group = null;
+            available.Clear();
+            registrations.Clear();
+            searchMessage = "조 이름을 입력해 주세요.";
+            return;
+        }
+
+        var groups = await DataStore.GetGroupsAsync();
+        var normalized = groupNameInput.Trim();
+        group = groups.FirstOrDefault(g => string.Equals(g.Name, normalized, StringComparison.OrdinalIgnoreCase));
+
+        if (group == null)
+        {
+            available.Clear();
+            registrations.Clear();
+            searchMessage = "해당 조를 찾을 수 없습니다.";
+            return;
+        }
+
+        await LoadGroupAsync();
+    }
+
+    private void ResolveUseOption()
+    {
+        if (string.IsNullOrWhiteSpace(UsePurpose))
+        {
+            activeUseOption = null;
+            return;
+        }
+
+        activeUseOption = UseOptions.FirstOrDefault(o =>
+            string.Equals(o.Key, UsePurpose.Trim(), StringComparison.OrdinalIgnoreCase));
+    }
+
+    private IReadOnlyList<string> GetAllowedTypes()
+    {
+        if (activeUseOption != null)
+        {
+            return activeUseOption.AllowedTypes;
+        }
+
+        if (!string.IsNullOrWhiteSpace(selectedType))
+        {
+            return new[] { selectedType };
+        }
+
+        return purposes;
+    }
+
+    private async Task LoadGroupAsync()
+    {
+        resolvedGroupId = group!.Id;
+        registrations = (await DataStore.GetRegistrationsForGroupAsync(resolvedGroupId)).ToList();
+        verseMap = (await DataStore.GetVersesAsync()).ToDictionary(v => v.Id, v => v);
+        purposes = (await DataStore.GetVersePurposesAsync()).ToList();
+        if (activeUseOption == null && purposes.Count > 0 && (string.IsNullOrWhiteSpace(selectedType) || !purposes.Contains(selectedType)))
+        {
+            selectedType = purposes[0];
+        }
+        FilterAvailable();
+    }
+
+    private sealed class AvailableVerse
+    {
+        public Guid VerseId { get; set; }
+        public string Text { get; set; } = string.Empty;
+        public DateTime RegisteredAt { get; set; }
+    }
+
+    private sealed class UseOption
+    {
+        public UseOption(string key, string label, IReadOnlyList<string> allowedTypes)
+        {
+            Key = key;
+            Label = label;
+            AllowedTypes = allowedTypes;
+        }
+
+        public string Key { get; }
+        public string Label { get; }
+        public IReadOnlyList<string> AllowedTypes { get; }
+    }
+}

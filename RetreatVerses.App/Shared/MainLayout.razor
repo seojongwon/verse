@@ -1,0 +1,48 @@
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+
+<div class="page">
+    <AuthorizeView>
+        <Authorized>
+            @if (isAdminPath)
+            {
+                <div class="sidebar">
+                    <NavMenu />
+                </div>
+            }
+        </Authorized>
+    </AuthorizeView>
+
+    <div class="main">
+        <div class="content px-4">
+            @Body
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool isAdminPath;
+
+    protected override void OnInitialized()
+    {
+        UpdateAdminPath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += HandleLocationChanged;
+    }
+
+    private void HandleLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        UpdateAdminPath(e.Location);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void UpdateAdminPath(string uri)
+    {
+        var relative = NavigationManager.ToBaseRelativePath(uri);
+        isAdminPath = relative.StartsWith("admin", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= HandleLocationChanged;
+    }
+}

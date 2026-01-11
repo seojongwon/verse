@@ -1,0 +1,126 @@
+@page "/qr/{VerseId:guid}"
+@page "/qr/{GroupId:guid}/{VerseId:guid}"
+@using RetreatVerses.App.Data
+@inject IDataStore DataStore
+
+<h3>말씀 등록</h3>
+
+@if (verse == null)
+{
+    <p class="text-muted">말씀 정보를 찾을 수 없습니다.</p>
+}
+else
+{
+    <section class="qr-register">
+        <div class="qr-register__panel">
+            <div class="qr-register__meta">
+                <span class="qr-register__chip">말씀 등록</span>
+                @if (group != null)
+                {
+                    <span class="qr-register__chip qr-register__chip--outline">@group.Name 조</span>
+                }
+            </div>
+
+            <div class="qr-register__search">
+                <label class="qr-register__label" for="qrGroupName">조 이름 입력</label>
+                <div class="qr-register__search-row">
+                    <input id="qrGroupName" class="qr-register__input" placeholder="예: 1조" @bind="groupNameInput" />
+                    <button type="button" class="qr-register__button qr-register__button--solid" @onclick="FindGroupByNameAsync">
+                        찾기
+                    </button>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(searchMessage))
+                {
+                    <div class="qr-register__search-message">@searchMessage</div>
+                }
+            </div>
+
+            <div class="qr-register__verse">
+                <p class="qr-register__verse-label">등록할 말씀</p>
+                <blockquote class="qr-register__blockquote">
+                    <p>@verse.Text</p>
+                    <footer class="qr-register__footer">@verse.Type</footer>
+                </blockquote>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(resultMessage))
+        {
+            <div class="alert qr-register__alert @(resultSuccess ? "alert-success" : "alert-danger")">@resultMessage</div>
+        }
+
+        <button class="btn qr-register__submit" @onclick="RegisterAsync" disabled="@(group == null)">등록하기</button>
+    </section>
+}
+
+@code {
+    [Parameter] public Guid GroupId { get; set; }
+    [Parameter] public Guid VerseId { get; set; }
+
+    private Group? group;
+    private Verse? verse;
+    private Guid resolvedGroupId;
+    private string groupNameInput = string.Empty;
+    private string? searchMessage;
+    private string? resultMessage;
+    private bool resultSuccess;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var verses = await DataStore.GetVersesAsync();
+        verse = verses.FirstOrDefault(v => v.Id == VerseId);
+
+        if (GroupId != Guid.Empty)
+        {
+            var groups = await DataStore.GetGroupsAsync();
+            group = groups.FirstOrDefault(g => g.Id == GroupId);
+            if (group != null)
+            {
+                groupNameInput = group.Name;
+                resolvedGroupId = group.Id;
+            }
+        }
+    }
+
+    private async Task RegisterAsync()
+    {
+        resultMessage = null;
+        if (group == null)
+        {
+            resultMessage = "조 이름을 먼저 입력해 주세요.";
+            resultSuccess = false;
+            return;
+        }
+
+        var result = await DataStore.RegisterVerseAsync(resolvedGroupId, VerseId);
+        resultMessage = result.Message;
+        resultSuccess = result.Success;
+    }
+
+    private async Task FindGroupByNameAsync()
+    {
+        searchMessage = null;
+        resultMessage = null;
+
+        if (string.IsNullOrWhiteSpace(groupNameInput))
+        {
+            group = null;
+            resolvedGroupId = Guid.Empty;
+            searchMessage = "조 이름을 입력해 주세요.";
+            return;
+        }
+
+        var groups = await DataStore.GetGroupsAsync();
+        var normalized = groupNameInput.Trim();
+        group = groups.FirstOrDefault(g => string.Equals(g.Name, normalized, StringComparison.OrdinalIgnoreCase));
+
+        if (group == null)
+        {
+            resolvedGroupId = Guid.Empty;
+            searchMessage = "해당 조를 찾을 수 없습니다.";
+            return;
+        }
+
+        resolvedGroupId = group.Id;
+    }
+}

@@ -1,0 +1,161 @@
+@page "/admin/groups"
+@attribute [Authorize]
+@using RetreatVerses.App.Data
+@inject IDataStore DataStore
+
+<h3>조 관리</h3>
+
+<div class="mb-3">
+    <label class="form-label">새 조 이름</label>
+    <div class="d-flex gap-2">
+        <input class="form-control" @bind="newGroupName" placeholder="예: 1조" />
+        <button class="btn btn-primary" @onclick="AddGroupAsync">추가</button>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-3">
+    <button class="btn btn-outline-danger" disabled="@(selectedGroupIds.Count == 0)" @onclick="DeleteSelectedAsync">선택 삭제</button>
+    <button class="btn btn-outline-danger" disabled="@(groups.Count == 0)" @onclick="DeleteAllAsync">전체 삭제</button>
+</div>
+
+@if (groups.Count == 0)
+{
+    <p class="text-muted">등록된 조가 없습니다.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>
+                    <input type="checkbox" @bind="IsAllSelected" />
+                </th>
+                <th>조 이름</th>
+                <th>작업</th>
+                <th>조 링크</th>
+                <th>조 ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var group in groups)
+            {
+                <tr>
+                    <td>
+                        <input type="checkbox" checked="@selectedGroupIds.Contains(group.Id)" @onchange="(e => ToggleGroupSelection(group.Id, e))" />
+                    </td>
+                    <td>
+                        <input class="form-control" @bind="group.Name" />
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => SaveGroupAsync(group)">저장</button>
+                        <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteGroupAsync(group)">삭제</button>
+                    </td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-secondary me-2" href="/group/@group.Id/verses">목록</a>
+                        <a class="btn btn-sm btn-outline-secondary" href="/use/@group.Id">사용</a>
+                    </td>
+                    <td class="text-muted">@group.Id</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Group> groups = new List<Group>();
+    private string newGroupName = string.Empty;
+    private HashSet<Guid> selectedGroupIds = new HashSet<Guid>();
+    private bool isAllSelected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadAsync();
+    }
+
+    private async Task AddGroupAsync()
+    {
+        if (string.IsNullOrWhiteSpace(newGroupName))
+        {
+            return;
+        }
+
+        await DataStore.AddGroupAsync(newGroupName);
+        newGroupName = string.Empty;
+        await ReloadAsync();
+    }
+
+    private async Task SaveGroupAsync(Group group)
+    {
+        await DataStore.UpdateGroupAsync(group.Id, group.Name);
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        groups = (await DataStore.GetGroupsAsync()).ToList();
+        SyncSelection();
+    }
+
+    private async Task DeleteGroupAsync(Group group)
+    {
+        await DataStore.DeleteGroupAsync(group.Id);
+        await ReloadAsync();
+    }
+
+    private async Task DeleteSelectedAsync()
+    {
+        if (selectedGroupIds.Count == 0)
+        {
+            return;
+        }
+
+        await DataStore.DeleteGroupsAsync(selectedGroupIds);
+        await ReloadAsync();
+    }
+
+    private async Task DeleteAllAsync()
+    {
+        await DataStore.DeleteAllGroupsAsync();
+        await ReloadAsync();
+    }
+
+    private void ToggleGroupSelection(Guid id, ChangeEventArgs args)
+    {
+        if (args.Value is bool isChecked && isChecked)
+        {
+            selectedGroupIds.Add(id);
+        }
+        else
+        {
+            selectedGroupIds.Remove(id);
+        }
+
+        isAllSelected = groups.Count > 0 && selectedGroupIds.Count == groups.Count;
+    }
+
+    private void SyncSelection()
+    {
+        selectedGroupIds = selectedGroupIds
+            .Where(id => groups.Any(g => g.Id == id))
+            .ToHashSet();
+        isAllSelected = groups.Count > 0 && selectedGroupIds.Count == groups.Count;
+    }
+
+    private bool IsAllSelected
+    {
+        get => isAllSelected;
+        set
+        {
+            isAllSelected = value;
+            if (isAllSelected)
+            {
+                selectedGroupIds = groups.Select(g => g.Id).ToHashSet();
+            }
+            else
+            {
+                selectedGroupIds.Clear();
+            }
+        }
+    }
+
+}
