@@ -270,6 +270,10 @@ a.btn + a.btn {
     box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.2);
 }
 
+.dashboard-card {
+    margin-bottom: 1.25rem;
+}
+
 .bg-light {
     background-color: var(--md-sys-color-surface-variant) !important;
     color: var(--md-sys-color-on-surface) !important;
