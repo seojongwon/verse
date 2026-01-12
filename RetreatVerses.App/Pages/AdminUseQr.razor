@@ -26,7 +26,10 @@
     <div class="mt-4">
         <label class="form-label">사용 링크</label>
         <input class="form-control" readonly value="@qrUrl" />
-        <small class="text-muted">QR 코드로 바로 접속할 수 있습니다.</small>
+        <div class="d-flex flex-wrap gap-2 mt-2">
+            <a class="btn btn-outline-secondary" href="@qrUrl" target="_blank" rel="noopener">링크 열기</a>
+            <small class="text-muted d-flex align-items-center">QR 코드로 바로 접속할 수 있습니다.</small>
+        </div>
     </div>
 }
 
