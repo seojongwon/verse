@@ -116,7 +116,6 @@
                     <thead>
                         <tr>
                             <th>말씀</th>
-                            <th>등록 시간</th>
                             <th class="text-end">작업</th>
                         </tr>
                     </thead>
@@ -125,8 +124,7 @@
                         {
                             <tr>
                                 <td class="use-verse__text">@item.Text</td>
-                                <td class="use-verse__time">@item.RegisteredAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
-                                <td class="text-end">
+                                <td class="text-end use-verse__action">
                                     <button class="btn btn-sm use-verse__use-button" @onclick="() => UseAsync(item)">사용</button>
                                 </td>
                             </tr>

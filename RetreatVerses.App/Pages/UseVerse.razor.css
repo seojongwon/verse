@@ -186,9 +186,8 @@
     color: #1b1f33;
 }
 
-.use-verse__time {
-    color: #6b7280;
-    font-size: 0.9rem;
+.use-verse__action {
+    white-space: nowrap;
 }
 
 .use-verse__use-button {
@@ -198,6 +197,7 @@
     color: #15803d;
     border: 1px solid #c6f1d5;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .use-verse__use-button:hover {
