@@ -20,7 +20,7 @@
         </select>
     </div>
     <div class="col-md-8">
-        <label class="form-label">사용 페이지 선택</label>
+    <label class="form-label">사용 용도 선택</label>
         <div class="d-flex flex-wrap gap-2">
             <a class="btn btn-outline-primary" href="/admin/use/meal">식사사용</a>
             <a class="btn btn-outline-primary" href="/admin/use/snack">간식사용</a>
@@ -36,10 +36,6 @@
         <span class="text-muted ms-2">허용 용도: @string.Join(", ", activeUseOption.AllowedTypes)</span>
     </div>
 }
-else
-{
-    <p class="text-muted">사용 페이지를 먼저 선택해 주세요.</p>
-}
 
 @if (!string.IsNullOrWhiteSpace(actionMessage))
 {
@@ -49,10 +45,6 @@ else
 @if (selectedGroup == null)
 {
     <p class="text-muted">조를 선택해 주세요.</p>
-}
-else if (activeUseOption == null)
-{
-    <p class="text-muted">사용 페이지를 선택해 주세요.</p>
 }
 else if (available.Count == 0)
 {
