@@ -1,28 +1,28 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300;8..144,400;8..144,500;8..144,600;8..144,700&family=Roboto+Serif:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap');
 
 :root {
-    --md-sys-color-primary: #0f766e;
-    --md-sys-color-primary-container: #ccfbf1;
+    --md-sys-color-primary: #ff0033;
+    --md-sys-color-primary-container: #ffe4ea;
     --md-sys-color-on-primary: #ffffff;
-    --md-sys-color-secondary: #b45309;
-    --md-sys-color-secondary-container: #fef3c7;
-    --md-sys-color-tertiary: #2563eb;
-    --md-sys-color-background: #f8fafc;
+    --md-sys-color-secondary: #111827;
+    --md-sys-color-secondary-container: #f3f4f6;
+    --md-sys-color-tertiary: #374151;
+    --md-sys-color-background: #f9fafb;
     --md-sys-color-surface: #ffffff;
-    --md-sys-color-surface-variant: #f1f5f9;
-    --md-sys-color-outline: #cbd5e1;
-    --md-sys-color-on-surface: #0f172a;
-    --md-sys-color-on-surface-variant: #475569;
-    --md-sys-color-error: #b42318;
-    --md-sys-color-success: #15803d;
-    --md-shadow-1: 0 2px 8px rgba(15, 23, 42, 0.08);
-    --md-shadow-2: 0 10px 24px rgba(15, 23, 42, 0.12);
-    --md-shadow-3: 0 16px 36px rgba(15, 23, 42, 0.16);
+    --md-sys-color-surface-variant: #f3f4f6;
+    --md-sys-color-outline: #e5e7eb;
+    --md-sys-color-on-surface: #111827;
+    --md-sys-color-on-surface-variant: #6b7280;
+    --md-sys-color-error: #dc2626;
+    --md-sys-color-success: #16a34a;
+    --md-shadow-1: 0 2px 6px rgba(15, 23, 42, 0.08);
+    --md-shadow-2: 0 10px 20px rgba(15, 23, 42, 0.12);
+    --md-shadow-3: 0 18px 32px rgba(15, 23, 42, 0.16);
 }
 
 html, body {
-    font-family: "Roboto Flex", "Segoe UI", sans-serif;
+    font-family: "Roboto", "Noto Sans KR", "Segoe UI", sans-serif;
     background-color: var(--md-sys-color-background);
     color: var(--md-sys-color-on-surface);
 }
@@ -30,14 +30,14 @@ html, body {
 body {
     min-height: 100vh;
     background-image:
-        radial-gradient(1100px 460px at 12% -10%, rgba(13, 148, 136, 0.15), transparent 70%),
-        radial-gradient(1000px 420px at 100% 0%, rgba(251, 191, 36, 0.18), transparent 65%),
-        linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+        radial-gradient(900px 420px at 5% -10%, rgba(255, 0, 51, 0.08), transparent 70%),
+        radial-gradient(900px 420px at 100% 0%, rgba(17, 24, 39, 0.06), transparent 65%),
+        linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
     background-attachment: fixed;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: "Roboto Serif", "Times New Roman", serif;
+    font-family: "Roboto", "Noto Sans KR", "Segoe UI", sans-serif;
     color: var(--md-sys-color-on-surface);
 }
 
@@ -47,7 +47,7 @@ a {
 }
 
 a:hover {
-    color: #115e59;
+    color: #cc0029;
 }
 
 .content {
@@ -79,8 +79,8 @@ input[type="submit"].btn {
 
 .btn-primary:hover,
 .btn-primary:focus {
-    background: #115e59;
-    border-color: #115e59;
+    background: #e6002e;
+    border-color: #e6002e;
     box-shadow: var(--md-shadow-2);
 }
 
@@ -93,7 +93,7 @@ input[type="submit"].btn {
 .btn-outline-primary:hover,
 .btn-outline-primary:focus {
     background: var(--md-sys-color-primary-container);
-    color: #0f3d38;
+    color: #8f001d;
 }
 
 .btn-outline-secondary {
@@ -120,12 +120,12 @@ input[type="submit"].btn {
 
 .btn-outline-warning {
     background: transparent;
-    border-color: var(--md-sys-color-secondary);
-    color: var(--md-sys-color-secondary);
+    border-color: #f59e0b;
+    color: #b45309;
 }
 
 .btn-outline-warning:hover {
-    background: var(--md-sys-color-secondary-container);
+    background: #fef3c7;
     color: #92400e;
 }
 
@@ -196,7 +196,7 @@ input[type="submit"].btn {
 .form-control:focus,
 .form-select:focus {
     border-color: var(--md-sys-color-primary);
-    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.2);
+    box-shadow: 0 0 0 3px rgba(255, 0, 51, 0.2);
 }
 
 .alert {

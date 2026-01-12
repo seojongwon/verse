@@ -70,7 +70,7 @@
 .qr-register__input:focus {
     outline: none;
     border-color: var(--md-sys-color-primary);
-    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.2);
+    box-shadow: 0 0 0 3px rgba(255, 0, 51, 0.2);
 }
 
 .qr-register__button {
@@ -90,7 +90,7 @@
 }
 
 .qr-register__button--solid:hover {
-    background: #115e59;
+    background: #e6002e;
     color: var(--md-sys-color-on-primary);
 }
 

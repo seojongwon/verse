@@ -102,7 +102,7 @@
 }
 
 .use-verse__button--solid:hover {
-    background: #115e59;
+    background: #e6002e;
     color: var(--md-sys-color-on-primary);
 }
 
@@ -132,7 +132,7 @@
 .use-verse__input:focus {
     outline: none;
     border-color: var(--md-sys-color-primary);
-    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.2);
+    box-shadow: 0 0 0 3px rgba(255, 0, 51, 0.2);
 }
 
 .use-verse__search-message {
@@ -142,7 +142,7 @@
 
 .use-verse__button:hover {
     border-color: var(--md-sys-color-primary);
-    color: #0f3d38;
+    color: #8f001d;
     box-shadow: var(--md-shadow-1);
 }
 
