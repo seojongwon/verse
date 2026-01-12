@@ -2,6 +2,7 @@
 @page "/qr/{GroupId:guid}/{VerseId:guid}"
 @using RetreatVerses.App.Data
 @inject IDataStore DataStore
+@inject NavigationManager NavigationManager
 
 <h3>말씀 등록</h3>
 
@@ -42,6 +43,21 @@ else
                     <footer class="qr-register__footer">@verse.Type</footer>
                 </blockquote>
             </div>
+
+            @if (!string.IsNullOrWhiteSpace(qrUrl) && !string.IsNullOrWhiteSpace(qrCodeDataUrl))
+            {
+                <div class="qr-register__qr">
+                    <div class="qr-register__qr-info">
+                        <label class="qr-register__label">QR 등록 링크</label>
+                        <input class="form-control" readonly value="@qrUrl" />
+                        <small class="text-muted">QR 코드로 바로 접속할 수 있습니다.</small>
+                        <a class="btn btn-outline-primary qr-register__download" href="@qrCodeDataUrl" download="@qrFileName">QR 다운로드</a>
+                    </div>
+                    <div class="qr-register__qr-image">
+                        <img src="@qrCodeDataUrl" alt="말씀 등록 QR 코드" />
+                    </div>
+                </div>
+            }
         </div>
 
         @if (!string.IsNullOrWhiteSpace(resultMessage))
@@ -64,11 +80,16 @@ else
     private string? searchMessage;
     private string? resultMessage;
     private bool resultSuccess;
+    private string? qrUrl;
+    private string? qrCodeDataUrl;
+    private string qrFileName = "qr-code.png";
 
     protected override async Task OnInitializedAsync()
     {
         var verses = await DataStore.GetVersesAsync();
         verse = verses.FirstOrDefault(v => v.Id == VerseId);
+
+        BuildQrAssets();
 
         if (GroupId != Guid.Empty)
         {
@@ -122,5 +143,35 @@ else
         }
 
         resolvedGroupId = group.Id;
+    }
+
+    private void BuildQrAssets()
+    {
+        qrUrl = BuildQrUrl();
+        if (string.IsNullOrWhiteSpace(qrUrl))
+        {
+            qrCodeDataUrl = null;
+            return;
+        }
+
+        using var generator = new QRCoder.QRCodeGenerator();
+        using var data = generator.CreateQrCode(qrUrl, QRCoder.QRCodeGenerator.ECCLevel.Q);
+        var png = new QRCoder.PngByteQRCode(data);
+        var bytes = png.GetGraphic(20);
+        qrCodeDataUrl = $"data:image/png;base64,{Convert.ToBase64String(bytes)}";
+        qrFileName = $"qr-{VerseId}.png";
+    }
+
+    private string? BuildQrUrl()
+    {
+        if (VerseId == Guid.Empty)
+        {
+            return null;
+        }
+
+        var baseUri = NavigationManager.BaseUri.TrimEnd('/');
+        return GroupId == Guid.Empty
+            ? $"{baseUri}/qr/{VerseId}"
+            : $"{baseUri}/qr/{GroupId}/{VerseId}";
     }
 }

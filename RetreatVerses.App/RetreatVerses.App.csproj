@@ -9,4 +9,8 @@
     <Content Update="App_Data\\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="QRCoder" Version="1.4.3" />
+  </ItemGroup>
+
 </Project>
