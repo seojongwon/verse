@@ -116,12 +116,14 @@ else
         <thead>
             <tr>
                 <th class="text-center align-middle">
-                    <input class="md-checkbox" type="checkbox" @bind="IsAllSelected" />
+                    <div class="d-flex justify-content-center align-items-center">
+                        <input class="md-checkbox" type="checkbox" @bind="IsAllSelected" />
+                    </div>
                 </th>
-                <th>말씀</th>
-                <th>유형</th>
-                <th>작업</th>
-                <th>말씀 ID</th>
+                <th class="text-center align-middle">말씀</th>
+                <th class="text-center align-middle">유형</th>
+                <th class="text-center align-middle">작업</th>
+                <th class="text-center align-middle">말씀 ID</th>
             </tr>
         </thead>
         <tbody>
