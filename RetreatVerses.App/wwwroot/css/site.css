@@ -1,37 +1,249 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300;8..144,400;8..144,500;8..144,600;8..144,700&family=Roboto+Serif:wght@500;700&display=swap');
+
+:root {
+    --md-sys-color-primary: #0f766e;
+    --md-sys-color-primary-container: #ccfbf1;
+    --md-sys-color-on-primary: #ffffff;
+    --md-sys-color-secondary: #b45309;
+    --md-sys-color-secondary-container: #fef3c7;
+    --md-sys-color-tertiary: #2563eb;
+    --md-sys-color-background: #f8fafc;
+    --md-sys-color-surface: #ffffff;
+    --md-sys-color-surface-variant: #f1f5f9;
+    --md-sys-color-outline: #cbd5e1;
+    --md-sys-color-on-surface: #0f172a;
+    --md-sys-color-on-surface-variant: #475569;
+    --md-sys-color-error: #b42318;
+    --md-sys-color-success: #15803d;
+    --md-shadow-1: 0 2px 8px rgba(15, 23, 42, 0.08);
+    --md-shadow-2: 0 10px 24px rgba(15, 23, 42, 0.12);
+    --md-shadow-3: 0 16px 36px rgba(15, 23, 42, 0.16);
+}
 
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: "Roboto Flex", "Segoe UI", sans-serif;
+    background-color: var(--md-sys-color-background);
+    color: var(--md-sys-color-on-surface);
 }
 
-a, .btn-link {
-    color: #0366d6;
+body {
+    min-height: 100vh;
+    background-image:
+        radial-gradient(1100px 460px at 12% -10%, rgba(13, 148, 136, 0.15), transparent 70%),
+        radial-gradient(1000px 420px at 100% 0%, rgba(251, 191, 36, 0.18), transparent 65%),
+        linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    background-attachment: fixed;
 }
 
-.btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Roboto Serif", "Times New Roman", serif;
+    color: var(--md-sys-color-on-surface);
+}
+
+a {
+    color: var(--md-sys-color-primary);
+    text-decoration: none;
+}
+
+a:hover {
+    color: #115e59;
 }
 
 .content {
-    padding-top: 1.1rem;
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+}
+
+.btn,
+button.btn,
+input[type="submit"].btn {
+    border-radius: 12px;
+    padding: 0.55rem 1.2rem;
+    border: 1px solid transparent;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn-primary {
+    background: var(--md-sys-color-primary);
+    border-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    box-shadow: var(--md-shadow-1);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background: #115e59;
+    border-color: #115e59;
+    box-shadow: var(--md-shadow-2);
+}
+
+.btn-outline-primary {
+    background: transparent;
+    border-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-primary);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+    background: var(--md-sys-color-primary-container);
+    color: #0f3d38;
+}
+
+.btn-outline-secondary {
+    background: transparent;
+    border-color: var(--md-sys-color-outline);
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface);
+}
+
+.btn-outline-danger {
+    background: transparent;
+    border-color: var(--md-sys-color-error);
+    color: var(--md-sys-color-error);
+}
+
+.btn-outline-danger:hover {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.btn-outline-warning {
+    background: transparent;
+    border-color: var(--md-sys-color-secondary);
+    color: var(--md-sys-color-secondary);
+}
+
+.btn-outline-warning:hover {
+    background: var(--md-sys-color-secondary-container);
+    color: #92400e;
+}
+
+.btn-sm {
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+}
+
+.btn-link {
+    color: var(--md-sys-color-primary);
+}
+
+.card {
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    border-radius: 18px;
+    background: var(--md-sys-color-surface);
+    box-shadow: var(--md-shadow-2);
+}
+
+.card-body {
+    padding: 1.4rem;
+}
+
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--md-sys-color-surface);
+    border-radius: 16px;
+    box-shadow: var(--md-shadow-1);
+    overflow: hidden;
+}
+
+.table th,
+.table td {
+    padding: 0.75rem 1rem;
+    border-color: rgba(148, 163, 184, 0.3);
+}
+
+.table thead th {
+    background: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface-variant);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(226, 232, 240, 0.35);
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.form-control,
+.form-select {
+    border-radius: 12px;
+    border: 1px solid var(--md-sys-color-outline);
+    background: var(--md-sys-color-surface);
+    padding: 0.55rem 0.9rem;
+    color: var(--md-sys-color-on-surface);
+    box-shadow: none;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--md-sys-color-primary);
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.2);
+}
+
+.alert {
+    border-radius: 14px;
+    border: 1px solid transparent;
+    padding: 0.85rem 1.1rem;
+    box-shadow: var(--md-shadow-1);
+}
+
+.alert-success {
+    background: #ecfdf3;
+    color: var(--md-sys-color-success);
+    border-color: rgba(21, 128, 61, 0.25);
+}
+
+.alert-danger {
+    background: #fef2f2;
+    color: var(--md-sys-color-error);
+    border-color: rgba(180, 35, 24, 0.25);
+}
+
+.text-muted {
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+.text-success {
+    color: var(--md-sys-color-success) !important;
+}
+
+.text-warning {
+    color: var(--md-sys-color-secondary) !important;
 }
 
 .valid.modified:not([type=checkbox]) {
-    outline: 1px solid #26b050;
+    outline: 1px solid var(--md-sys-color-success);
 }
 
 .invalid {
-    outline: 1px solid red;
+    outline: 1px solid var(--md-sys-color-error);
 }
 
 .validation-message {
-    color: red;
+    color: var(--md-sys-color-error);
 }
 
 #blazor-error-ui {
-    background: lightyellow;
+    background: #fff7ed;
     bottom: 0;
     box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
     display: none;
@@ -42,9 +254,9 @@ a, .btn-link {
     z-index: 1000;
 }
 
-    #blazor-error-ui .dismiss {
-        cursor: pointer;
-        position: absolute;
-        right: 0.75rem;
-        top: 0.5rem;
-    }
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
