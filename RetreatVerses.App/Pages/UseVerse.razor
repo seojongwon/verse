@@ -52,14 +52,14 @@
             <label class="use-verse__label" for="groupNameInput">조 이름 입력</label>
             <div class="use-verse__search-row">
                 <input id="groupNameInput" class="use-verse__input" placeholder="예: 1조" @bind="groupNameInput" />
-                <button type="button" class="use-verse__button use-verse__button--solid" @onclick="FindGroupByNameAsync">
-                    찾기
-                </button>
             </div>
             <label class="use-verse__label" for="groupPasswordInput">조 비밀번호</label>
             <div class="use-verse__search-row">
                 <input id="groupPasswordInput" class="use-verse__input" type="password" autocomplete="current-password"
                        placeholder="비밀번호 입력" @bind="groupPasswordInput" />
+                <button type="button" class="use-verse__button use-verse__button--solid" @onclick="FindGroupByNameAsync">
+                    찾기
+                </button>
             </div>
             @if (!string.IsNullOrWhiteSpace(searchMessage))
             {
