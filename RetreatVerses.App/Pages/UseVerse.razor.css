@@ -39,7 +39,7 @@
     border-radius: 20px;
     background: var(--md-sys-color-surface);
     box-shadow: var(--md-shadow-2);
-    border: 1px solid rgba(148, 163, 184, 0.4);
+    border: 1px solid var(--md-sys-color-outline);
     margin-bottom: 1.5rem;
 }
 
@@ -102,7 +102,7 @@
 }
 
 .use-verse__button--solid:hover {
-    background: #e6002e;
+    background: var(--md-sys-color-primary-hover);
     color: var(--md-sys-color-on-primary);
 }
 
@@ -142,7 +142,7 @@
 
 .use-verse__button:hover {
     border-color: var(--md-sys-color-primary);
-    color: #8f001d;
+    color: var(--md-sys-color-primary);
     box-shadow: var(--md-shadow-1);
 }
 
@@ -174,7 +174,7 @@
 }
 
 .use-verse__table tbody tr {
-    border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+    border-bottom: 1px solid var(--md-sys-color-outline);
 }
 
 .use-verse__table tbody tr:last-child {
@@ -193,9 +193,9 @@
 .use-verse__use-button {
     border-radius: 999px;
     padding: 0.35rem 1.1rem;
-    background: #ecfdf3;
+    background: var(--md-sys-color-success-container);
     color: var(--md-sys-color-success);
-    border: 1px solid rgba(21, 128, 61, 0.2);
+    border: 1px solid rgba(21, 128, 61, 0.25);
     font-weight: 600;
     white-space: nowrap;
 }
@@ -210,16 +210,26 @@
     border-radius: 999px;
     padding: 0.35rem 1.1rem;
     margin-left: 0.4rem;
-    background: var(--md-sys-color-secondary-container);
-    color: var(--md-sys-color-secondary);
-    border: 1px solid rgba(180, 83, 9, 0.2);
+    background: var(--md-sys-color-warning-container);
+    color: var(--md-sys-color-warning);
+    border: 1px solid rgba(245, 158, 11, 0.25);
     font-weight: 600;
 }
 
 .use-verse__recite-button:hover {
-    background: var(--md-sys-color-secondary);
+    background: var(--md-sys-color-warning);
     color: #fff;
-    border-color: var(--md-sys-color-secondary);
+    border-color: var(--md-sys-color-warning);
+}
+
+@media (prefers-color-scheme: dark) {
+    .use-verse__use-button {
+        border-color: rgba(52, 211, 153, 0.35);
+    }
+
+    .use-verse__recite-button {
+        border-color: rgba(251, 191, 36, 0.35);
+    }
 }
 
 .use-verse__empty {

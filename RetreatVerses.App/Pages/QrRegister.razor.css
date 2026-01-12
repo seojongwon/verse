@@ -12,7 +12,7 @@
     border-radius: 20px;
     background: var(--md-sys-color-surface);
     box-shadow: var(--md-shadow-2);
-    border: 1px solid rgba(148, 163, 184, 0.4);
+    border: 1px solid var(--md-sys-color-outline);
 }
 
 .qr-register__meta {
@@ -90,7 +90,7 @@
 }
 
 .qr-register__button--solid:hover {
-    background: #e6002e;
+    background: var(--md-sys-color-primary-hover);
     color: var(--md-sys-color-on-primary);
 }
 
@@ -103,7 +103,7 @@
     background: var(--md-sys-color-surface);
     border-radius: 16px;
     padding: 1rem 1.2rem;
-    border: 1px solid rgba(148, 163, 184, 0.3);
+    border: 1px solid var(--md-sys-color-outline);
 }
 
 .qr-register__qr {
@@ -113,7 +113,7 @@
     padding: 1.2rem;
     border-radius: 16px;
     background: var(--md-sys-color-surface);
-    border: 1px solid rgba(148, 163, 184, 0.3);
+    border: 1px solid var(--md-sys-color-outline);
 }
 
 .qr-register__qr-info {
@@ -129,7 +129,7 @@
     padding: 0.6rem;
     border-radius: 14px;
     background: var(--md-sys-color-surface-variant);
-    border: 1px solid rgba(148, 163, 184, 0.3);
+    border: 1px solid var(--md-sys-color-outline);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -185,7 +185,8 @@
 }
 
 .qr-register__submit:disabled {
-    background: #cbd5e1;
+    background: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface-variant);
     box-shadow: none;
     cursor: not-allowed;
 }
