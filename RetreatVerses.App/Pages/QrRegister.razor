@@ -56,7 +56,7 @@ else
             <div class="alert qr-register__alert @(resultSuccess ? "alert-success" : "alert-danger")">@resultMessage</div>
         }
 
-        <button class="btn qr-register__submit" @onclick="RegisterAsync" disabled="@(group == null || !isAuthorizedGroup)">등록하기</button>
+        <button class="btn qr-register__submit" @onclick="RegisterAsync" disabled="@(group == null)">등록하기</button>
     </section>
 }
 
@@ -93,7 +93,15 @@ else
     private async Task RegisterAsync()
     {
         resultMessage = null;
-        if (group == null || !isAuthorizedGroup)
+        if (group == null)
+        {
+            resultMessage = "조 비밀번호를 확인해 주세요.";
+            resultSuccess = false;
+            return;
+        }
+
+        isAuthorizedGroup = await DataStore.VerifyGroupPasswordAsync(group.Id, groupPasswordInput);
+        if (!isAuthorizedGroup)
         {
             resultMessage = "조 비밀번호를 확인해 주세요.";
             resultSuccess = false;
