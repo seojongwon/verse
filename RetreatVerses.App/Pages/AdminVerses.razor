@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @using System.IO
 @using Microsoft.AspNetCore.Hosting
+@using System.Text.Json
 @using RetreatVerses.App.Data
 @inject IDataStore DataStore
 @inject IWebHostEnvironment WebHostEnvironment
@@ -11,12 +12,18 @@
 <div class="mb-3">
     <label class="form-label">새 말씀</label>
     <div class="mt-2 mb-3">
-        <label class="form-label">성경 검색</label>
+        <div class="d-flex align-items-center gap-2">
+            <label class="form-label mb-0">성경 검색</label>
+            <select class="form-select form-select-sm w-auto" @bind="BibleBookOrder">
+                <option value="json">성경순</option>
+                <option value="alpha">가나다순</option>
+            </select>
+        </div>
         <div class="row g-3 align-items-center">
             <div class="col-12 col-md-3">
                 <div class="d-flex align-items-center gap-2">
                     <span class="form-label small mb-0 me-1">성경 이름</span>
-                    <select class="form-select flex-grow-1" @bind="BibleBook">
+                    <select class="form-select flex-grow-1 ms-2" @bind="BibleBook">
                         @foreach (var book in bibleBooks)
                         {
                             <option value="@book">@book</option>
@@ -27,7 +34,7 @@
             <div class="col-12 col-md-3">
                 <div class="d-flex align-items-center gap-2">
                     <span class="form-label small mb-0 me-1">장</span>
-                    <select class="form-select flex-grow-1" @bind="BibleChapter">
+                    <select class="form-select flex-grow-1 ms-2" @bind="BibleChapter">
                         @foreach (var chapter in bibleChapterOptions)
                         {
                             <option value="@chapter">@chapter</option>
@@ -38,7 +45,7 @@
             <div class="col-12 col-md-3">
                 <div class="d-flex align-items-center gap-2">
                     <span class="form-label small mb-0 me-1">절</span>
-                    <select class="form-select flex-grow-1" @bind="BibleVerse">
+                    <select class="form-select flex-grow-1 ms-2" @bind="BibleVerse">
                         @foreach (var verse in bibleVerseOptions)
                         {
                             <option value="@verse">@verse</option>
@@ -162,6 +169,8 @@ else
     private string? bibleBook;
     private string bibleChapter = string.Empty;
     private string bibleVerse = string.Empty;
+    private string bibleBookOrder = "json";
+    private readonly List<string> bibleKeyOrder = new List<string>();
     private readonly Dictionary<string, SortedDictionary<int, int>> bibleIndex = new();
     private List<string> bibleChapterOptions = new List<string>();
     private List<string> bibleVerseOptions = new List<string>();
@@ -272,6 +281,14 @@ else
         try
         {
             var json = await File.ReadAllTextAsync(biblePath);
+            bibleKeyOrder.Clear();
+            using (var document = JsonDocument.Parse(json))
+            {
+                foreach (var item in document.RootElement.EnumerateObject())
+                {
+                    bibleKeyOrder.Add(item.Name);
+                }
+            }
             bibleEntries = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json)
                 ?? new Dictionary<string, string>();
             bibleIndex.Clear();
@@ -294,11 +311,7 @@ else
                 }
             }
 
-            bibleBooks = BuildBibleBookList(bibleEntries.Keys);
-            if (bibleBooks.Count > 0)
-            {
-                bibleBook ??= bibleBooks[0];
-            }
+            ApplyBibleBookOrder();
             UpdateChapterOptions();
         }
         catch (Exception ex)
@@ -404,7 +417,7 @@ else
         return index == 0 ? string.Empty : key[..index];
     }
 
-    private static List<string> BuildBibleBookList(IEnumerable<string> keys)
+    private static List<string> BuildBibleBookList(IEnumerable<string> keys, bool sortAlpha)
     {
         var books = new List<string>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -418,6 +431,11 @@ else
             }
 
             books.Add(name);
+        }
+
+        if (sortAlpha)
+        {
+            books.Sort(StringComparer.Ordinal);
         }
 
         return books;
@@ -480,6 +498,23 @@ else
         if (!bibleVerseOptions.Contains(bibleVerse))
         {
             bibleVerse = bibleVerseOptions[0];
+        }
+    }
+
+    private void ApplyBibleBookOrder()
+    {
+        var useAlpha = string.Equals(bibleBookOrder, "alpha", StringComparison.Ordinal);
+        var keys = bibleKeyOrder.Count > 0 ? bibleKeyOrder : bibleEntries.Keys;
+        bibleBooks = BuildBibleBookList(keys, useAlpha);
+        if (bibleBooks.Count == 0)
+        {
+            bibleBook = null;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(bibleBook) || !bibleBooks.Contains(bibleBook))
+        {
+            bibleBook = bibleBooks[0];
         }
     }
 
@@ -556,5 +591,21 @@ else
     {
         get => bibleVerse;
         set => bibleVerse = value ?? string.Empty;
+    }
+
+    private string BibleBookOrder
+    {
+        get => bibleBookOrder;
+        set
+        {
+            if (bibleBookOrder == value)
+            {
+                return;
+            }
+
+            bibleBookOrder = value ?? "json";
+            ApplyBibleBookOrder();
+            UpdateChapterOptions();
+        }
     }
 }
