@@ -21,8 +21,8 @@
         </div>
         <div class="row g-3 align-items-center">
             <div class="col-12 col-md-3">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="form-label small mb-0 me-3">성경 이름</span>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="form-label small mb-0">성경 이름</span>
                     <select class="form-select flex-grow-1" @bind="BibleBook">
                         @foreach (var book in bibleBooks)
                         {
@@ -32,8 +32,8 @@
                 </div>
             </div>
             <div class="col-12 col-md-3">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="form-label small mb-0 me-3">장</span>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="form-label small mb-0">장</span>
                     <select class="form-select flex-grow-1" @bind="BibleChapter">
                         @foreach (var chapter in bibleChapterOptions)
                         {
@@ -43,8 +43,8 @@
                 </div>
             </div>
             <div class="col-12 col-md-3">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="form-label small mb-0 me-3">절</span>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="form-label small mb-0">절</span>
                     <select class="form-select flex-grow-1" @bind="BibleVerse">
                         @foreach (var verse in bibleVerseOptions)
                         {
@@ -120,10 +120,10 @@ else
                         <input class="md-checkbox" type="checkbox" @bind="IsAllSelected" />
                     </div>
                 </th>
-                <th class="text-center align-middle">말씀</th>
-                <th class="text-center align-middle">유형</th>
-                <th class="text-center align-middle">작업</th>
-                <th class="text-center align-middle">말씀 ID</th>
+                <th class="text-start align-middle">말씀</th>
+                <th class="text-start align-middle">유형</th>
+                <th class="text-start align-middle">작업</th>
+                <th class="text-start align-middle">말씀 ID</th>
             </tr>
         </thead>
         <tbody>
