@@ -20,20 +20,31 @@
         </select>
     </div>
     <div class="col-md-8">
-    <label class="form-label">사용 용도 선택</label>
+        <label class="form-label">사용 용도 선택</label>
         <div class="d-flex flex-wrap gap-2">
-            <a class="btn btn-outline-primary" href="/admin/use/meal">식사사용</a>
-            <a class="btn btn-outline-primary" href="/admin/use/snack">간식사용</a>
-            <a class="btn btn-outline-primary" href="/admin/use/sleep">취침사용</a>
+            @if (purposes.Count == 0)
+            {
+                <span class="text-muted">등록된 말씀 용도가 없습니다.</span>
+            }
+            else
+            {
+                @foreach (var purpose in purposes)
+                {
+                    <button type="button"
+                            class="btn btn-outline-primary @(selectedPurpose == purpose ? "active" : null)"
+                            @onclick="() => SetPurpose(purpose)">
+                        @purpose
+                    </button>
+                }
+            }
         </div>
     </div>
 </div>
 
-@if (activeUseOption != null)
+@if (!string.IsNullOrWhiteSpace(selectedPurpose))
 {
     <div class="mb-3">
-        <span class="badge bg-primary">@activeUseOption.Label</span>
-        <span class="text-muted ms-2">허용 용도: @string.Join(", ", activeUseOption.AllowedTypes)</span>
+        <span class="badge bg-primary">@selectedPurpose</span>
     </div>
 }
 
@@ -89,40 +100,39 @@ else
     private Group? selectedGroup;
     private string? actionMessage;
     private bool actionSuccess;
-    private UseOption? activeUseOption;
-
-    private static readonly IReadOnlyList<UseOption> UseOptions = new List<UseOption>
-    {
-        new UseOption("meal", "식사사용", new[] { "식사용" }),
-        new UseOption("snack", "간식사용", new[] { "식사용", "간식용" }),
-        new UseOption("sleep", "취침사용", new[] { "취침용" })
-    };
+    private List<string> purposes = new List<string>();
+    private string? selectedPurpose;
 
     protected override async Task OnInitializedAsync()
     {
-        ResolveUseOption();
         groups = (await DataStore.GetGroupsAsync()).ToList();
+        purposes = (await DataStore.GetVersePurposesAsync()).ToList();
+        ResolveUsePurpose();
     }
 
     protected override void OnParametersSet()
     {
-        ResolveUseOption();
+        ResolveUsePurpose();
         if (selectedGroup != null)
         {
             FilterAvailable();
         }
     }
 
-    private void ResolveUseOption()
+    private void ResolveUsePurpose()
     {
         if (string.IsNullOrWhiteSpace(UsePurpose))
         {
-            activeUseOption = null;
+            if (purposes.Count > 0 && string.IsNullOrWhiteSpace(selectedPurpose))
+            {
+                selectedPurpose = purposes[0];
+            }
             return;
         }
 
-        activeUseOption = UseOptions.FirstOrDefault(o =>
-            string.Equals(o.Key, UsePurpose.Trim(), StringComparison.OrdinalIgnoreCase));
+        var matched = purposes.FirstOrDefault(purpose =>
+            string.Equals(purpose, UsePurpose.Trim(), StringComparison.OrdinalIgnoreCase));
+        selectedPurpose = matched ?? UsePurpose.Trim();
     }
 
     private async Task OnGroupChanged(ChangeEventArgs args)
@@ -153,17 +163,16 @@ else
 
     private void FilterAvailable()
     {
-        if (selectedGroup == null || activeUseOption == null)
+        if (selectedGroup == null || string.IsNullOrWhiteSpace(selectedPurpose))
         {
             available.Clear();
             return;
         }
 
-        var allowedTypes = activeUseOption.AllowedTypes;
         available = registrations
             .Where(r => !r.UsedAt.HasValue && !r.RecitedAt.HasValue)
             .Where(r => verseMap.TryGetValue(r.VerseId, out var verse)
-                && allowedTypes.Contains(verse.Type, StringComparer.OrdinalIgnoreCase))
+                && string.Equals(verse.Type, selectedPurpose, StringComparison.OrdinalIgnoreCase))
             .Select(r =>
             {
                 var verse = verseMap[r.VerseId];
@@ -177,6 +186,17 @@ else
             })
             .OrderBy(v => v.RegisteredAt)
             .ToList();
+    }
+
+    private void SetPurpose(string purpose)
+    {
+        if (selectedPurpose == purpose)
+        {
+            return;
+        }
+
+        selectedPurpose = purpose;
+        FilterAvailable();
     }
 
     private async Task ReciteAsync(AvailableVerse item)
@@ -203,17 +223,4 @@ else
         public DateTime RegisteredAt { get; set; }
     }
 
-    private sealed class UseOption
-    {
-        public UseOption(string key, string label, IReadOnlyList<string> allowedTypes)
-        {
-            Key = key;
-            Label = label;
-            AllowedTypes = allowedTypes;
-        }
-
-        public string Key { get; }
-        public string Label { get; }
-        public IReadOnlyList<string> AllowedTypes { get; }
-    }
 }
