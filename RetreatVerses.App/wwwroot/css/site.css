@@ -222,6 +222,54 @@ a.btn + a.btn {
     min-width: 0;
 }
 
+.verse-add-row {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    flex-wrap: nowrap;
+}
+
+.verse-add-select {
+    min-width: 200px;
+}
+
+.verse-add-input {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.md-checkbox {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 2px solid var(--md-sys-color-outline);
+    background: var(--md-sys-color-surface);
+    display: inline-grid;
+    place-content: center;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.md-checkbox:checked {
+    background: var(--md-sys-color-primary);
+    border-color: var(--md-sys-color-primary);
+}
+
+.md-checkbox:checked::before {
+    content: "";
+    width: 8px;
+    height: 4px;
+    border-left: 2px solid var(--md-sys-color-on-primary);
+    border-bottom: 2px solid var(--md-sys-color-on-primary);
+    transform: rotate(-45deg);
+}
+
+.md-checkbox:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.2);
+}
+
 .bg-light {
     background-color: var(--md-sys-color-surface-variant) !important;
     color: var(--md-sys-color-on-surface) !important;

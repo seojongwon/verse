@@ -8,8 +8,8 @@
 <div class="mb-3">
     <label class="form-label">새 말씀</label>
     <textarea class="form-control" rows="2" @bind="newVerseText" placeholder="말씀을 입력하세요"></textarea>
-    <div class="d-flex gap-2 mt-2">
-        <select class="form-select w-auto" @bind="newVerseType">
+    <div class="verse-add-row mt-2">
+        <select class="form-select verse-add-select" @bind="newVerseType">
             @foreach (var purpose in purposes)
             {
                 <option value="@purpose">@purpose</option>
@@ -21,8 +21,8 @@
 
 <div class="mb-3">
     <label class="form-label">말씀 용도 추가</label>
-    <div class="d-flex gap-2">
-        <input class="form-control" @bind="newPurpose" placeholder="예: 말씀암송용" />
+    <div class="verse-add-row">
+        <input class="form-control verse-add-input" @bind="newPurpose" placeholder="예: 말씀암송용" />
         <button class="btn btn-outline-primary" @onclick="AddPurposeAsync">용도 추가</button>
     </div>
     @if (!string.IsNullOrWhiteSpace(purposeMessage))
@@ -46,7 +46,7 @@ else
         <thead>
             <tr>
                 <th>
-                    <input type="checkbox" @bind="IsAllSelected" />
+                    <input class="md-checkbox" type="checkbox" @bind="IsAllSelected" />
                 </th>
                 <th>말씀</th>
                 <th>유형</th>
@@ -59,7 +59,7 @@ else
             {
                 <tr>
                     <td>
-                        <input type="checkbox" checked="@selectedVerseIds.Contains(verse.Id)" @onchange="(e => ToggleVerseSelection(verse.Id, e))" />
+                        <input class="md-checkbox" type="checkbox" checked="@selectedVerseIds.Contains(verse.Id)" @onchange="(e => ToggleVerseSelection(verse.Id, e))" />
                     </td>
                     <td style="min-width: 300px;">
                         <textarea class="form-control" rows="2" @bind="verse.Text"></textarea>
