@@ -22,8 +22,8 @@
         <div class="row g-3 align-items-center">
             <div class="col-12 col-md-3">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="form-label small mb-0 me-1">성경 이름</span>
-                    <select class="form-select flex-grow-1 ms-2" @bind="BibleBook">
+                    <span class="form-label small mb-0 me-3">성경 이름</span>
+                    <select class="form-select flex-grow-1" @bind="BibleBook">
                         @foreach (var book in bibleBooks)
                         {
                             <option value="@book">@book</option>
@@ -33,8 +33,8 @@
             </div>
             <div class="col-12 col-md-3">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="form-label small mb-0 me-1">장</span>
-                    <select class="form-select flex-grow-1 ms-2" @bind="BibleChapter">
+                    <span class="form-label small mb-0 me-3">장</span>
+                    <select class="form-select flex-grow-1" @bind="BibleChapter">
                         @foreach (var chapter in bibleChapterOptions)
                         {
                             <option value="@chapter">@chapter</option>
@@ -44,8 +44,8 @@
             </div>
             <div class="col-12 col-md-3">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="form-label small mb-0 me-1">절</span>
-                    <select class="form-select flex-grow-1 ms-2" @bind="BibleVerse">
+                    <span class="form-label small mb-0 me-3">절</span>
+                    <select class="form-select flex-grow-1" @bind="BibleVerse">
                         @foreach (var verse in bibleVerseOptions)
                         {
                             <option value="@verse">@verse</option>
