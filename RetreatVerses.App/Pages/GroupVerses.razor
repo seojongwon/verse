@@ -30,10 +30,10 @@ else
             <thead>
                 <tr>
                     <th>말씀</th>
-                    <th>유형</th>
-                    <th>등록 시간</th>
-                    <th>사용 상태</th>
-                    <th>작업</th>
+                    <th class="table-nowrap">유형</th>
+                    <th class="table-nowrap">등록 시간</th>
+                    <th class="table-nowrap">사용 상태</th>
+                    <th class="table-nowrap">작업</th>
                 </tr>
             </thead>
             <tbody>
@@ -41,23 +41,23 @@ else
                 {
                     <tr>
                         <td>@item.Text</td>
-                        <td>@item.Type</td>
-                        <td>@item.RegisteredAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        <td class="table-nowrap">@item.Type</td>
+                        <td class="table-nowrap">@item.RegisteredAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                         <td>
                             @if (item.UsedAt.HasValue)
                             {
-                                <span class="text-muted">사용됨 (@item.UsedAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm"))</span>
+                                <span class="text-muted table-nowrap">사용됨 (@item.UsedAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm"))</span>
                             }
                             else if (item.RecitedAt.HasValue)
                             {
-                                <span class="text-warning">암송됨 (@item.RecitedAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm"))</span>
+                                <span class="text-warning table-nowrap">암송됨 (@item.RecitedAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm"))</span>
                             }
                             else
                             {
-                                <span class="text-success">사용 가능</span>
+                                <span class="text-success table-nowrap">사용 가능</span>
                             }
                         </td>
-                        <td>
+                        <td class="table-nowrap">
                             @if (item.UsedAt.HasValue || item.RecitedAt.HasValue)
                             {
                                 <button class="btn btn-sm btn-outline-secondary" @onclick="() => ResetStatusAsync(item)">되돌리기</button>

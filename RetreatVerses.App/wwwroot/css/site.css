@@ -263,6 +263,10 @@ a.btn + a.btn {
     border-color: var(--md-sys-color-outline);
 }
 
+.table-nowrap {
+    white-space: nowrap;
+}
+
 .table thead th {
     background: var(--md-sys-color-surface-variant);
     color: var(--md-sys-color-on-surface-variant);
