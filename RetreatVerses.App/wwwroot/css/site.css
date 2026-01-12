@@ -210,6 +210,18 @@ a.btn + a.btn {
     color: var(--md-sys-color-primary);
 }
 
+.group-add-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: nowrap;
+}
+
+.group-add-input {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
 .bg-light {
     background-color: var(--md-sys-color-surface-variant) !important;
     color: var(--md-sys-color-on-surface) !important;
