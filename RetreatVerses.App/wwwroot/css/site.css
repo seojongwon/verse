@@ -124,6 +124,17 @@ a:hover {
     color: var(--md-sys-color-on-surface);
 }
 
+.bible-inline-field {
+    display: flex;
+    align-items: center;
+    column-gap: 0.75rem;
+}
+
+.bible-inline-field .form-label {
+    margin-bottom: 0;
+    flex-shrink: 0;
+}
+
 .content {
     padding-top: 1.5rem;
     padding-bottom: 2rem;

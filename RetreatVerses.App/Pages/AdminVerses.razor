@@ -12,18 +12,18 @@
 <div class="mb-3">
     <label class="form-label">새 말씀</label>
     <div class="mt-2 mb-3">
-        <div class="d-flex align-items-center gap-2">
-            <label class="form-label mb-0">성경 검색</label>
+        <div class="bible-inline-field">
+            <label class="form-label">성경 검색</label>
             <select class="form-select form-select-sm w-auto" @bind="BibleBookOrder">
                 <option value="json">성경순</option>
                 <option value="alpha">가나다순</option>
             </select>
         </div>
-        <div class="row g-3 align-items-center">
+        <div class="row g-3 align-items-center mt-2">
             <div class="col-12 col-md-3">
-                <div class="d-flex align-items-center">
-                    <span class="form-label small mb-0">성경 이름</span>
-                    <select class="form-select flex-grow-1 ms-3" @bind="BibleBook">
+                <div class="bible-inline-field">
+                    <span class="form-label small">성경 이름</span>
+                    <select class="form-select flex-grow-1" @bind="BibleBook">
                         @foreach (var book in bibleBooks)
                         {
                             <option value="@book">@book</option>
@@ -32,9 +32,9 @@
                 </div>
             </div>
             <div class="col-12 col-md-3">
-                <div class="d-flex align-items-center">
-                    <span class="form-label small mb-0">장</span>
-                    <select class="form-select flex-grow-1 ms-3" @bind="BibleChapter">
+                <div class="bible-inline-field">
+                    <span class="form-label small">장</span>
+                    <select class="form-select flex-grow-1" @bind="BibleChapter">
                         @foreach (var chapter in bibleChapterOptions)
                         {
                             <option value="@chapter">@chapter</option>
@@ -43,9 +43,9 @@
                 </div>
             </div>
             <div class="col-12 col-md-3">
-                <div class="d-flex align-items-center">
-                    <span class="form-label small mb-0">절</span>
-                    <select class="form-select flex-grow-1 ms-3" @bind="BibleVerse">
+                <div class="bible-inline-field">
+                    <span class="form-label small">절</span>
+                    <select class="form-select flex-grow-1" @bind="BibleVerse">
                         @foreach (var verse in bibleVerseOptions)
                         {
                             <option value="@verse">@verse</option>
