@@ -412,6 +412,28 @@ namespace RetreatVerses.App.Data
             }
         }
 
+        public async Task<OperationResult> UnregisterVerseAsync(Guid groupId, Guid verseId)
+        {
+            await _mutex.WaitAsync();
+            try
+            {
+                var registrations = await ReadListInternalAsync<Registration>(RegistrationsFileName);
+                var target = registrations.FirstOrDefault(r => r.GroupId == groupId && r.VerseId == verseId);
+                if (target == null)
+                {
+                    return new OperationResult(false, "등록된 말씀을 찾을 수 없습니다.");
+                }
+
+                registrations.Remove(target);
+                await WriteListInternalAsync(RegistrationsFileName, registrations);
+                return new OperationResult(true, "등록을 해제했습니다.");
+            }
+            finally
+            {
+                _mutex.Release();
+            }
+        }
+
         public async Task<OperationResult> UseVerseAsync(Guid groupId, Guid verseId)
         {
             await _mutex.WaitAsync();

@@ -26,6 +26,7 @@ namespace RetreatVerses.App.Data
         Task<IReadOnlyList<Registration>> GetRegistrationsAsync();
         Task<IReadOnlyList<Registration>> GetRegistrationsForGroupAsync(Guid groupId);
         Task<OperationResult> RegisterVerseAsync(Guid groupId, Guid verseId);
+        Task<OperationResult> UnregisterVerseAsync(Guid groupId, Guid verseId);
         Task<OperationResult> UseVerseAsync(Guid groupId, Guid verseId);
         Task<OperationResult> ReciteVerseAsync(Guid groupId, Guid verseId);
         Task<OperationResult> ResetVerseStatusAsync(Guid groupId, Guid verseId);

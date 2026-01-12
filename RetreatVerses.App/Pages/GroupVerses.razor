@@ -4,6 +4,11 @@
 
 <h3>조별 말씀 목록</h3>
 
+@if (!string.IsNullOrWhiteSpace(actionMessage))
+{
+    <div class="alert @(actionSuccess ? "alert-success" : "alert-danger")">@actionMessage</div>
+}
+
 @if (group == null)
 {
     <p class="text-muted">조 정보를 찾을 수 없습니다.</p>
@@ -57,6 +62,7 @@ else
                             {
                                 <button class="btn btn-sm btn-outline-secondary" @onclick="() => ResetStatusAsync(item)">되돌리기</button>
                             }
+                            <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => UnregisterAsync(item)">미등록</button>
                         </td>
                     </tr>
                 }
@@ -70,6 +76,8 @@ else
 
     private Group? group;
     private List<VerseStatus> items = new List<VerseStatus>();
+    private string? actionMessage;
+    private bool actionSuccess;
 
     protected override async Task OnInitializedAsync()
     {
@@ -106,6 +114,14 @@ else
     private async Task ResetStatusAsync(VerseStatus item)
     {
         await DataStore.ResetVerseStatusAsync(GroupId, item.VerseId);
+        await OnInitializedAsync();
+    }
+
+    private async Task UnregisterAsync(VerseStatus item)
+    {
+        var result = await DataStore.UnregisterVerseAsync(GroupId, item.VerseId);
+        actionMessage = result.Message;
+        actionSuccess = result.Success;
         await OnInitializedAsync();
     }
 
