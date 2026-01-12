@@ -29,7 +29,7 @@ else
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>
+                <th class="text-center align-middle">
                     <input class="md-checkbox" type="checkbox" @bind="IsAllSelected" />
                 </th>
                 <th>조 이름</th>
@@ -43,7 +43,7 @@ else
             @foreach (var group in groups)
             {
                 <tr>
-                    <td>
+                    <td class="text-center align-middle">
                         <input class="md-checkbox" type="checkbox" checked="@selectedGroupIds.Contains(group.Id)" @onchange="(e => ToggleGroupSelection(group.Id, e))" />
                     </td>
                     <td>

@@ -115,7 +115,7 @@ else
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>
+                <th class="text-center align-middle">
                     <input class="md-checkbox" type="checkbox" @bind="IsAllSelected" />
                 </th>
                 <th>말씀</th>
@@ -128,7 +128,7 @@ else
             @foreach (var verse in verses)
             {
                 <tr>
-                    <td>
+                    <td class="text-center align-middle">
                         <input class="md-checkbox" type="checkbox" checked="@selectedVerseIds.Contains(verse.Id)" @onchange="(e => ToggleVerseSelection(verse.Id, e))" />
                     </td>
                     <td style="min-width: 300px;">
