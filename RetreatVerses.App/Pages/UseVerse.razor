@@ -4,6 +4,7 @@
 @page "/use/{UsePurpose}/{GroupId:guid}"
 @using RetreatVerses.App.Data
 @inject IDataStore DataStore
+@inject IJSRuntime JSRuntime
 
 <section class="use-verse">
     <header class="use-verse__header">
@@ -25,7 +26,7 @@
 
     <div class="use-verse__panel">
         <div class="use-verse__meta">
-            <span class="use-verse__chip">그룹 이름으로 조회</span>
+            <span class="use-verse__chip">조 이름으로 조회</span>
             @if (group != null)
             {
                 <span class="use-verse__chip use-verse__chip--outline">@group.Name 조</span>
@@ -163,6 +164,8 @@
     private List<string> purposes = new List<string>();
     private UseOption? activeUseOption;
     private bool isAuthorizedGroup;
+    private const string PasswordCookiePrefix = "rv_group_pw_";
+    private const string LastGroupCookieKey = "rv_last_group_name";
     private static readonly IReadOnlyList<UseOption> UseOptions = new List<UseOption>
     {
         new UseOption("meal", "식사사용", new[] { "식사용" }),
@@ -247,16 +250,6 @@
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(groupPasswordInput))
-        {
-            group = null;
-            resolvedGroupId = Guid.Empty;
-            available.Clear();
-            registrations.Clear();
-            searchMessage = "조 비밀번호를 입력해 주세요.";
-            return;
-        }
-
         var groups = await DataStore.GetGroupsAsync();
         var normalized = groupNameInput.Trim();
         group = groups.FirstOrDefault(g => string.Equals(g.Name, normalized, StringComparison.OrdinalIgnoreCase));
@@ -267,6 +260,25 @@
             available.Clear();
             registrations.Clear();
             searchMessage = "해당 조를 찾을 수 없습니다.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(groupPasswordInput))
+        {
+            var storedPassword = await GetStoredPasswordAsync(group.Id);
+            if (!string.IsNullOrWhiteSpace(storedPassword))
+            {
+                groupPasswordInput = storedPassword;
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(groupPasswordInput))
+        {
+            group = null;
+            resolvedGroupId = Guid.Empty;
+            available.Clear();
+            registrations.Clear();
+            searchMessage = "조 비밀번호를 입력해 주세요.";
             return;
         }
 
@@ -281,6 +293,7 @@
         }
 
         isAuthorizedGroup = true;
+        await StorePasswordAsync(group.Id, groupPasswordInput, group.Name);
         await LoadGroupAsync();
     }
 
@@ -328,6 +341,30 @@
             selectedType = purposes[0];
         }
         FilterAvailable();
+    }
+
+    private async Task<string?> GetStoredPasswordAsync(Guid groupId)
+    {
+        try
+        {
+            return await JSRuntime.InvokeAsync<string?>("verseCookie.get", $"{PasswordCookiePrefix}{groupId}");
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private async Task StorePasswordAsync(Guid groupId, string password, string groupName)
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("verseCookie.set", $"{PasswordCookiePrefix}{groupId}", password, 30);
+            await JSRuntime.InvokeVoidAsync("verseCookie.set", LastGroupCookieKey, groupName, 30);
+        }
+        catch
+        {
+        }
     }
 
     private sealed class AvailableVerse
