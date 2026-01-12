@@ -35,7 +35,6 @@ else
                     <input id="qrGroupPassword" class="qr-register__input" type="password" autocomplete="current-password"
                            placeholder="비밀번호 입력" @bind="groupPasswordInput" />
                 </div>
-                <div class="qr-register__search-message">사용을 위해 비밀번호를 입력한 뒤 잊지 않게 보관해 주세요.</div>
                 @if (!string.IsNullOrWhiteSpace(searchMessage))
                 {
                     <div class="qr-register__search-message">@searchMessage</div>
