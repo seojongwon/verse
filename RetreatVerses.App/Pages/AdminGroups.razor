@@ -30,7 +30,7 @@ else
         <thead>
             <tr>
                 <th>
-                    <input type="checkbox" @bind="IsAllSelected" />
+                    <input class="md-checkbox" type="checkbox" @bind="IsAllSelected" />
                 </th>
                 <th>조 이름</th>
                 <th>비밀번호</th>
@@ -44,7 +44,7 @@ else
             {
                 <tr>
                     <td>
-                        <input type="checkbox" checked="@selectedGroupIds.Contains(group.Id)" @onchange="(e => ToggleGroupSelection(group.Id, e))" />
+                        <input class="md-checkbox" type="checkbox" checked="@selectedGroupIds.Contains(group.Id)" @onchange="(e => ToggleGroupSelection(group.Id, e))" />
                     </td>
                     <td>
                         <input class="form-control" @bind="group.Name" />
