@@ -92,6 +92,38 @@ a:hover {
     color: var(--md-sys-color-primary-hover);
 }
 
+.sidebar .nav-link {
+    color: var(--md-sys-color-on-surface);
+    border-radius: 12px;
+    height: 2.75rem;
+    display: flex;
+    align-items: center;
+    line-height: 2.75rem;
+    padding: 0 0.9rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar .nav-icon {
+    margin-right: 0.5rem;
+    font-size: 1.15rem;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link:focus {
+    color: var(--md-sys-color-on-surface);
+    background-color: var(--md-sys-color-surface-variant);
+}
+
+.sidebar .nav-link.active {
+    color: var(--md-sys-color-on-surface);
+    background: var(--md-sys-color-primary-container);
+    font-weight: 600;
+}
+
+.navbar-brand {
+    color: var(--md-sys-color-on-surface);
+}
+
 .content {
     padding-top: 1.5rem;
     padding-bottom: 2rem;

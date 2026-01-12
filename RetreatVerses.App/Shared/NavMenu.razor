@@ -1,11 +1,8 @@
 <div class="top-row pl-4 navbar navbar-dark">
     <a class="navbar-brand" href="">말씀 화폐제도</a>
-    <button class="navbar-toggler" @onclick="ToggleNavMenu">
-        <span class="navbar-toggler-icon"></span>
-    </button>
 </div>
 
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+<div class="@NavMenuCssClass">
     <ul class="nav flex-column">
         <li class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
@@ -14,7 +11,7 @@
             </NavLink>
         </li>
         <li class="nav-item px-3">
-            <NavLink class="nav-link" href="admin">
+            <NavLink class="nav-link" href="admin" Match="NavLinkMatch.All">
                 <span class="material-symbols-rounded nav-icon" aria-hidden="true">dashboard</span>
                 대시보드
             </NavLink>
