@@ -12,27 +12,33 @@
     <label class="form-label">새 말씀</label>
     <div class="mt-2 mb-3">
         <label class="form-label">성경 검색</label>
-        <div class="row g-2">
-            <div class="col-12 col-md-4">
-                <label class="form-label small mb-1">성경 이름</label>
+        <div class="row g-2 align-items-center">
+            <div class="col-12 col-md-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="form-label small mb-0">성경 이름</span>
                 <select class="form-select" @bind="bibleBook">
                     @foreach (var book in bibleBooks)
                     {
                         <option value="@book">@book</option>
                     }
                 </select>
+                </div>
             </div>
-            <div class="col-12 col-md-4">
-                <label class="form-label small mb-1">장</label>
+            <div class="col-12 col-md-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="form-label small mb-0">장</span>
                 <input class="form-control" @bind="bibleChapter" placeholder="예: 1" />
+                </div>
             </div>
-            <div class="col-12 col-md-4">
-                <label class="form-label small mb-1">절</label>
+            <div class="col-12 col-md-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="form-label small mb-0">절</span>
                 <input class="form-control" @bind="bibleVerse" placeholder="예: 1" />
+                </div>
             </div>
-        </div>
-        <div class="d-grid mt-2">
-            <button class="btn btn-outline-secondary" @onclick="SearchBibleAsync">검색</button>
+            <div class="col-12 col-md-3 d-grid">
+                <button class="btn btn-outline-secondary" @onclick="SearchBibleAsync">검색</button>
+            </div>
         </div>
         @if (!string.IsNullOrWhiteSpace(bibleSearchMessage))
         {
