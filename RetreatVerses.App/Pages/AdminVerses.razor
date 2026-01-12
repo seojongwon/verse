@@ -1,7 +1,9 @@
 @page "/admin/verses"
 @attribute [Authorize]
+@using System.IO
 @using RetreatVerses.App.Data
 @inject IDataStore DataStore
+@inject IWebHostEnvironment WebHostEnvironment
 
 <h3>말씀 관리</h3>
 
@@ -16,6 +18,41 @@
             }
         </select>
         <button class="btn btn-primary" @onclick="AddVerseAsync">추가</button>
+    </div>
+    <div class="mt-3">
+        <label class="form-label">성경 검색</label>
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-4">
+                <label class="form-label small mb-1">성경 이름</label>
+                <select class="form-select" @bind="bibleBook">
+                    @foreach (var book in bibleBooks)
+                    {
+                        <option value="@book">@book</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label small mb-1">장</label>
+                <input class="form-control" @bind="bibleChapter" placeholder="예: 1" />
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label small mb-1">절</label>
+                <input class="form-control" @bind="bibleVerse" placeholder="예: 1" />
+            </div>
+            <div class="col-12 col-md-2 d-grid">
+                <button class="btn btn-outline-secondary" @onclick="SearchBibleAsync">검색</button>
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(bibleSearchMessage))
+        {
+            <small class="text-muted">@bibleSearchMessage</small>
+        }
+        @if (!string.IsNullOrWhiteSpace(bibleSearchResult))
+        {
+            <div class="alert alert-light mt-2 mb-0">
+                <strong>@bibleSearchKey</strong> @bibleSearchResult
+            </div>
+        }
     </div>
 </div>
 
@@ -92,9 +129,18 @@ else
     private string? purposeMessage;
     private HashSet<Guid> selectedVerseIds = new HashSet<Guid>();
     private bool isAllSelected;
+    private Dictionary<string, string> bibleEntries = new Dictionary<string, string>();
+    private List<string> bibleBooks = new List<string>();
+    private string? bibleBook;
+    private string bibleChapter = string.Empty;
+    private string bibleVerse = string.Empty;
+    private string? bibleSearchMessage;
+    private string? bibleSearchResult;
+    private string? bibleSearchKey;
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadBibleAsync();
         await ReloadAsync();
     }
 
@@ -165,6 +211,84 @@ else
         await ReloadAsync();
     }
 
+    private async Task LoadBibleAsync()
+    {
+        var biblePath = Path.Combine(WebHostEnvironment.ContentRootPath, "bible.json");
+        if (!File.Exists(biblePath))
+        {
+            biblePath = Path.GetFullPath(Path.Combine(WebHostEnvironment.ContentRootPath, "..", "bible.json"));
+        }
+
+        if (!File.Exists(biblePath))
+        {
+            bibleSearchMessage = "bible.json 파일을 찾을 수 없습니다.";
+            return;
+        }
+
+        try
+        {
+            var json = await File.ReadAllTextAsync(biblePath);
+            bibleEntries = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json)
+                ?? new Dictionary<string, string>();
+            bibleBooks = bibleEntries.Keys
+                .Select(ExtractBookName)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(name => name, StringComparer.Ordinal)
+                .ToList();
+            if (bibleBooks.Count > 0)
+            {
+                bibleBook ??= bibleBooks[0];
+            }
+        }
+        catch (Exception ex)
+        {
+            bibleSearchMessage = $"성경 데이터를 불러오지 못했습니다: {ex.Message}";
+        }
+    }
+
+    private void SearchBibleAsync()
+    {
+        bibleSearchMessage = null;
+        bibleSearchResult = null;
+        bibleSearchKey = null;
+
+        if (bibleEntries.Count == 0)
+        {
+            bibleSearchMessage = "성경 데이터가 없습니다.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(bibleBook))
+        {
+            bibleSearchMessage = "성경 이름을 선택해 주세요.";
+            return;
+        }
+
+        if (!int.TryParse(bibleChapter.Trim(), out var chapter) || chapter <= 0)
+        {
+            bibleSearchMessage = "장 번호를 확인해 주세요.";
+            return;
+        }
+
+        if (!int.TryParse(bibleVerse.Trim(), out var verse) || verse <= 0)
+        {
+            bibleSearchMessage = "절 번호를 확인해 주세요.";
+            return;
+        }
+
+        var key = $"{bibleBook}{chapter}:{verse}";
+        if (!bibleEntries.TryGetValue(key, out var text))
+        {
+            bibleSearchMessage = "해당 구절을 찾을 수 없습니다.";
+            return;
+        }
+
+        bibleSearchKey = key;
+        bibleSearchResult = text;
+        newVerseText = $"{bibleSearchKey} {bibleSearchResult}";
+    }
+
     private void ToggleVerseSelection(Guid id, ChangeEventArgs args)
     {
         if (args.Value is bool isChecked && isChecked)
@@ -202,5 +326,21 @@ else
                 selectedVerseIds.Clear();
             }
         }
+    }
+
+    private static string ExtractBookName(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return string.Empty;
+        }
+
+        var index = 0;
+        while (index < key.Length && !char.IsDigit(key[index]))
+        {
+            index++;
+        }
+
+        return index == 0 ? string.Empty : key[..index];
     }
 }
