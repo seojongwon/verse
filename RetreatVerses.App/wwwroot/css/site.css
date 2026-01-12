@@ -242,6 +242,7 @@ a.btn + a.btn {
     border-radius: 16px;
     box-shadow: var(--md-shadow-1);
     overflow: hidden;
+    color: var(--md-sys-color-on-surface);
 }
 
 .table th,
