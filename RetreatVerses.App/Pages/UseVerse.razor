@@ -259,8 +259,14 @@
             return;
         }
 
+        var trimmed = UsePurpose.Trim();
         activeUseOption = UseOptions.FirstOrDefault(o =>
-            string.Equals(o.Key, UsePurpose.Trim(), StringComparison.OrdinalIgnoreCase));
+            string.Equals(o.Key, trimmed, StringComparison.OrdinalIgnoreCase));
+
+        if (activeUseOption == null)
+        {
+            activeUseOption = new UseOption(trimmed, trimmed, new[] { trimmed });
+        }
     }
 
     private IReadOnlyList<string> GetAllowedTypes()
