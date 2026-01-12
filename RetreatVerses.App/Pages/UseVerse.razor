@@ -56,13 +56,18 @@
                     찾기
                 </button>
             </div>
+            <label class="use-verse__label" for="groupPasswordInput">조 비밀번호</label>
+            <div class="use-verse__search-row">
+                <input id="groupPasswordInput" class="use-verse__input" type="password" autocomplete="current-password"
+                       placeholder="비밀번호 입력" @bind="groupPasswordInput" />
+            </div>
             @if (!string.IsNullOrWhiteSpace(searchMessage))
             {
                 <div class="use-verse__search-message">@searchMessage</div>
             }
         </div>
 
-        @if (group != null && purposes.Count > 0 && activeUseOption == null)
+        @if (group != null && isAuthorizedGroup && purposes.Count > 0 && activeUseOption == null)
         {
             <div class="use-verse__selector">
                 <span class="use-verse__label">유형 선택</span>
@@ -80,7 +85,7 @@
             </div>
         }
 
-        @if (group != null && activeUseOption != null)
+        @if (group != null && isAuthorizedGroup && activeUseOption != null)
         {
             <div class="use-verse__selector">
                 <span class="use-verse__label">사용 가능 용도</span>
@@ -97,6 +102,10 @@
     @if (group == null)
     {
         <p class="use-verse__empty">조 이름을 입력해 말씀을 불러오세요.</p>
+    }
+    else if (!isAuthorizedGroup)
+    {
+        <p class="use-verse__empty">조 비밀번호를 확인해 주세요.</p>
     }
     else
     {
@@ -143,6 +152,7 @@
     private Group? group;
     private Guid resolvedGroupId;
     private string groupNameInput = string.Empty;
+    private string groupPasswordInput = string.Empty;
     private string? searchMessage;
     private List<Registration> registrations = new List<Registration>();
     private Dictionary<Guid, Verse> verseMap = new Dictionary<Guid, Verse>();
@@ -152,6 +162,7 @@
     private bool actionSuccess;
     private List<string> purposes = new List<string>();
     private UseOption? activeUseOption;
+    private bool isAuthorizedGroup;
     private static readonly IReadOnlyList<UseOption> UseOptions = new List<UseOption>
     {
         new UseOption("meal", "식사사용", new[] { "식사용" }),
@@ -169,7 +180,7 @@
             if (group != null)
             {
                 groupNameInput = group.Name;
-                await LoadGroupAsync();
+                isAuthorizedGroup = false;
             }
         }
     }
@@ -207,7 +218,7 @@
 
     private async Task UseAsync(AvailableVerse item)
     {
-        if (group == null)
+        if (group == null || !isAuthorizedGroup)
         {
             return;
         }
@@ -224,13 +235,25 @@
     {
         searchMessage = null;
         actionMessage = null;
+        isAuthorizedGroup = false;
 
         if (string.IsNullOrWhiteSpace(groupNameInput))
         {
             group = null;
+            resolvedGroupId = Guid.Empty;
             available.Clear();
             registrations.Clear();
             searchMessage = "조 이름을 입력해 주세요.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(groupPasswordInput))
+        {
+            group = null;
+            resolvedGroupId = Guid.Empty;
+            available.Clear();
+            registrations.Clear();
+            searchMessage = "조 비밀번호를 입력해 주세요.";
             return;
         }
 
@@ -240,12 +263,24 @@
 
         if (group == null)
         {
+            resolvedGroupId = Guid.Empty;
             available.Clear();
             registrations.Clear();
             searchMessage = "해당 조를 찾을 수 없습니다.";
             return;
         }
 
+        if (!await DataStore.VerifyGroupPasswordAsync(group.Id, groupPasswordInput))
+        {
+            group = null;
+            resolvedGroupId = Guid.Empty;
+            available.Clear();
+            registrations.Clear();
+            searchMessage = "비밀번호가 일치하지 않습니다.";
+            return;
+        }
+
+        isAuthorizedGroup = true;
         await LoadGroupAsync();
     }
 

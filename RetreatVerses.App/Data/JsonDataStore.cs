@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -58,11 +60,16 @@ namespace RetreatVerses.App.Data
             return await ReadListAsync<Group>(GroupsFileName);
         }
 
-        public async Task<Group> AddGroupAsync(string name)
+        public async Task<Group> AddGroupAsync(string name, string password)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentException("Group name is required.", nameof(name));
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                throw new ArgumentException("Group password is required.", nameof(password));
             }
 
             await _mutex.WaitAsync();
@@ -70,6 +77,7 @@ namespace RetreatVerses.App.Data
             {
                 var groups = await ReadListInternalAsync<Group>(GroupsFileName);
                 var group = new Group { Id = Guid.NewGuid(), Name = name.Trim() };
+                group.PasswordHash = HashPassword(group.Id, password);
                 groups.Add(group);
                 await WriteListInternalAsync(GroupsFileName, groups);
                 return group;
@@ -80,7 +88,7 @@ namespace RetreatVerses.App.Data
             }
         }
 
-        public async Task<bool> UpdateGroupAsync(Guid id, string name)
+        public async Task<bool> UpdateGroupAsync(Guid id, string name, string? password)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -98,6 +106,10 @@ namespace RetreatVerses.App.Data
                 }
 
                 target.Name = name.Trim();
+                if (!string.IsNullOrWhiteSpace(password))
+                {
+                    target.PasswordHash = HashPassword(target.Id, password);
+                }
                 await WriteListInternalAsync(GroupsFileName, groups);
                 return true;
             }
@@ -131,6 +143,24 @@ namespace RetreatVerses.App.Data
             {
                 _mutex.Release();
             }
+        }
+
+        public async Task<bool> VerifyGroupPasswordAsync(Guid groupId, string password)
+        {
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                return false;
+            }
+
+            var groups = await ReadListAsync<Group>(GroupsFileName);
+            var group = groups.FirstOrDefault(g => g.Id == groupId);
+            if (group == null || string.IsNullOrWhiteSpace(group.PasswordHash))
+            {
+                return false;
+            }
+
+            var hashed = HashPassword(group.Id, password);
+            return string.Equals(group.PasswordHash, hashed, StringComparison.Ordinal);
         }
 
         public async Task<int> DeleteGroupsAsync(IEnumerable<Guid> ids)
@@ -565,6 +595,15 @@ namespace RetreatVerses.App.Data
 
             purposes = new List<string> { DefaultMealPurpose, DefaultSnackPurpose };
             await WriteListInternalAsync(PurposesFileName, purposes);
+        }
+
+        private static string HashPassword(Guid groupId, string password)
+        {
+            var normalized = password.Trim();
+            var input = $"{groupId:N}:{normalized}";
+            using var sha = SHA256.Create();
+            var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return Convert.ToBase64String(bytes);
         }
 
         private sealed class VerseJsonConverter : JsonConverter<Verse>

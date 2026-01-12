@@ -30,6 +30,11 @@ else
                         찾기
                     </button>
                 </div>
+                <label class="qr-register__label" for="qrGroupPassword">조 비밀번호</label>
+                <div class="qr-register__search-row">
+                    <input id="qrGroupPassword" class="qr-register__input" type="password" autocomplete="current-password"
+                           placeholder="비밀번호 입력" @bind="groupPasswordInput" />
+                </div>
                 @if (!string.IsNullOrWhiteSpace(searchMessage))
                 {
                     <div class="qr-register__search-message">@searchMessage</div>
@@ -51,7 +56,7 @@ else
             <div class="alert qr-register__alert @(resultSuccess ? "alert-success" : "alert-danger")">@resultMessage</div>
         }
 
-        <button class="btn qr-register__submit" @onclick="RegisterAsync" disabled="@(group == null)">등록하기</button>
+        <button class="btn qr-register__submit" @onclick="RegisterAsync" disabled="@(group == null || !isAuthorizedGroup)">등록하기</button>
     </section>
 }
 
@@ -63,9 +68,11 @@ else
     private Verse? verse;
     private Guid resolvedGroupId;
     private string groupNameInput = string.Empty;
+    private string groupPasswordInput = string.Empty;
     private string? searchMessage;
     private string? resultMessage;
     private bool resultSuccess;
+    private bool isAuthorizedGroup;
     protected override async Task OnInitializedAsync()
     {
         var verses = await DataStore.GetVersesAsync();
@@ -74,11 +81,11 @@ else
         if (GroupId != Guid.Empty)
         {
             var groups = await DataStore.GetGroupsAsync();
-            group = groups.FirstOrDefault(g => g.Id == GroupId);
-            if (group != null)
+            var presetGroup = groups.FirstOrDefault(g => g.Id == GroupId);
+            if (presetGroup != null)
             {
-                groupNameInput = group.Name;
-                resolvedGroupId = group.Id;
+                groupNameInput = presetGroup.Name;
+                resolvedGroupId = presetGroup.Id;
             }
         }
     }
@@ -86,9 +93,9 @@ else
     private async Task RegisterAsync()
     {
         resultMessage = null;
-        if (group == null)
+        if (group == null || !isAuthorizedGroup)
         {
-            resultMessage = "조 이름을 먼저 입력해 주세요.";
+            resultMessage = "조 비밀번호를 확인해 주세요.";
             resultSuccess = false;
             return;
         }
@@ -102,12 +109,21 @@ else
     {
         searchMessage = null;
         resultMessage = null;
+        isAuthorizedGroup = false;
 
         if (string.IsNullOrWhiteSpace(groupNameInput))
         {
             group = null;
             resolvedGroupId = Guid.Empty;
             searchMessage = "조 이름을 입력해 주세요.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(groupPasswordInput))
+        {
+            group = null;
+            resolvedGroupId = Guid.Empty;
+            searchMessage = "조 비밀번호를 입력해 주세요.";
             return;
         }
 
@@ -122,6 +138,15 @@ else
             return;
         }
 
+        if (!await DataStore.VerifyGroupPasswordAsync(group.Id, groupPasswordInput))
+        {
+            group = null;
+            resolvedGroupId = Guid.Empty;
+            searchMessage = "비밀번호가 일치하지 않습니다.";
+            return;
+        }
+
+        isAuthorizedGroup = true;
         resolvedGroupId = group.Id;
     }
 

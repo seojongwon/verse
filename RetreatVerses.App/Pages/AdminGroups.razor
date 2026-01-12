@@ -9,8 +9,10 @@
     <label class="form-label">새 조 이름</label>
     <div class="d-flex gap-2">
         <input class="form-control" @bind="newGroupName" placeholder="예: 1조" />
+        <input class="form-control" type="password" autocomplete="new-password" @bind="newGroupPassword" placeholder="비밀번호" />
         <button class="btn btn-primary" @onclick="AddGroupAsync">추가</button>
     </div>
+    <small class="text-muted">조별 비밀번호는 말씀 등록/사용 시 필요합니다.</small>
 </div>
 
 <div class="d-flex flex-wrap gap-2 mb-3">
@@ -31,6 +33,7 @@ else
                     <input type="checkbox" @bind="IsAllSelected" />
                 </th>
                 <th>조 이름</th>
+                <th>비밀번호</th>
                 <th>작업</th>
                 <th>조 링크</th>
                 <th>조 ID</th>
@@ -45,6 +48,13 @@ else
                     </td>
                     <td>
                         <input class="form-control" @bind="group.Name" />
+                    </td>
+                    <td>
+                        <input class="form-control" type="password" autocomplete="new-password"
+                               placeholder="변경 시 입력"
+                               @bind-value:get="GetPasswordInput(group.Id)"
+                               @bind-value:set="value => SetPasswordInput(group.Id, value)"
+                               @bind-value:event="oninput" />
                     </td>
                     <td>
                         <button class="btn btn-sm btn-outline-primary" @onclick="() => SaveGroupAsync(group)">저장</button>
@@ -64,8 +74,10 @@ else
 @code {
     private List<Group> groups = new List<Group>();
     private string newGroupName = string.Empty;
+    private string newGroupPassword = string.Empty;
     private HashSet<Guid> selectedGroupIds = new HashSet<Guid>();
     private bool isAllSelected;
+    private readonly Dictionary<Guid, string> passwordInputs = new Dictionary<Guid, string>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -74,19 +86,22 @@ else
 
     private async Task AddGroupAsync()
     {
-        if (string.IsNullOrWhiteSpace(newGroupName))
+        if (string.IsNullOrWhiteSpace(newGroupName) || string.IsNullOrWhiteSpace(newGroupPassword))
         {
             return;
         }
 
-        await DataStore.AddGroupAsync(newGroupName);
+        await DataStore.AddGroupAsync(newGroupName, newGroupPassword);
         newGroupName = string.Empty;
+        newGroupPassword = string.Empty;
         await ReloadAsync();
     }
 
     private async Task SaveGroupAsync(Group group)
     {
-        await DataStore.UpdateGroupAsync(group.Id, group.Name);
+        passwordInputs.TryGetValue(group.Id, out var password);
+        await DataStore.UpdateGroupAsync(group.Id, group.Name, string.IsNullOrWhiteSpace(password) ? null : password);
+        passwordInputs.Remove(group.Id);
         await ReloadAsync();
     }
 
@@ -139,6 +154,16 @@ else
             .Where(id => groups.Any(g => g.Id == id))
             .ToHashSet();
         isAllSelected = groups.Count > 0 && selectedGroupIds.Count == groups.Count;
+    }
+
+    private string GetPasswordInput(Guid id)
+    {
+        return passwordInputs.TryGetValue(id, out var value) ? value : string.Empty;
+    }
+
+    private void SetPasswordInput(Guid id, string? value)
+    {
+        passwordInputs[id] = value ?? string.Empty;
     }
 
     private bool IsAllSelected

@@ -7,8 +7,9 @@ namespace RetreatVerses.App.Data
     public interface IDataStore
     {
         Task<IReadOnlyList<Group>> GetGroupsAsync();
-        Task<Group> AddGroupAsync(string name);
-        Task<bool> UpdateGroupAsync(Guid id, string name);
+        Task<Group> AddGroupAsync(string name, string password);
+        Task<bool> UpdateGroupAsync(Guid id, string name, string? password);
+        Task<bool> VerifyGroupPasswordAsync(Guid groupId, string password);
         Task<bool> DeleteGroupAsync(Guid id);
         Task<int> DeleteGroupsAsync(IEnumerable<Guid> ids);
         Task<int> DeleteAllGroupsAsync();
