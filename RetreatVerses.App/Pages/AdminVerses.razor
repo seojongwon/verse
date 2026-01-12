@@ -12,28 +12,38 @@
     <label class="form-label">새 말씀</label>
     <div class="mt-2 mb-3">
         <label class="form-label">성경 검색</label>
-        <div class="row g-2 align-items-center">
+        <div class="row g-3 align-items-center">
             <div class="col-12 col-md-3">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="form-label small mb-0">성경 이름</span>
-                <select class="form-select" @bind="bibleBook">
-                    @foreach (var book in bibleBooks)
-                    {
-                        <option value="@book">@book</option>
-                    }
-                </select>
+                    <span class="form-label small mb-0 me-1">성경 이름</span>
+                    <select class="form-select flex-grow-1" @bind="BibleBook">
+                        @foreach (var book in bibleBooks)
+                        {
+                            <option value="@book">@book</option>
+                        }
+                    </select>
                 </div>
             </div>
             <div class="col-12 col-md-3">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="form-label small mb-0">장</span>
-                <input class="form-control" @bind="bibleChapter" placeholder="예: 1" />
+                    <span class="form-label small mb-0 me-1">장</span>
+                    <select class="form-select flex-grow-1" @bind="BibleChapter">
+                        @foreach (var chapter in bibleChapterOptions)
+                        {
+                            <option value="@chapter">@chapter</option>
+                        }
+                    </select>
                 </div>
             </div>
             <div class="col-12 col-md-3">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="form-label small mb-0">절</span>
-                <input class="form-control" @bind="bibleVerse" placeholder="예: 1" />
+                    <span class="form-label small mb-0 me-1">절</span>
+                    <select class="form-select flex-grow-1" @bind="BibleVerse">
+                        @foreach (var verse in bibleVerseOptions)
+                        {
+                            <option value="@verse">@verse</option>
+                        }
+                    </select>
                 </div>
             </div>
             <div class="col-12 col-md-3 d-grid">
@@ -52,28 +62,37 @@
         }
     </div>
     <textarea class="form-control" rows="2" @bind="newVerseText" placeholder="말씀을 입력하세요"></textarea>
-    <div class="verse-add-row mt-2">
-        <select class="form-select verse-add-select" @bind="newVerseType">
-            @foreach (var purpose in purposes)
-            {
-                <option value="@purpose">@purpose</option>
-            }
-        </select>
+    <div class="row g-2 align-items-center mt-2">
+        <div class="col-12 col-md-5">
+            <select class="form-select" @bind="newVerseType">
+                @foreach (var purpose in purposes)
+                {
+                    <option value="@purpose">@purpose</option>
+                }
+            </select>
+        </div>
+        <div class="col-12 col-md-5">
+            <input class="form-control" @bind="newPurpose" placeholder="말씀 용도 추가" />
+        </div>
+        <div class="col-12 col-md-2 d-grid">
+            <button class="btn btn-outline-primary" @onclick="AddPurposeAsync">용도 추가</button>
+        </div>
+    </div>
+    <div class="d-grid mt-2">
         <button class="btn btn-primary" @onclick="AddVerseAsync">추가</button>
     </div>
-</div>
-
-<div class="mb-3">
-    <label class="form-label">말씀 용도 추가</label>
-    <div class="verse-add-row">
-        <input class="form-control verse-add-input" @bind="newPurpose" placeholder="예: 말씀암송용" />
-        <button class="btn btn-outline-primary" @onclick="AddPurposeAsync">용도 추가</button>
-    </div>
-    @if (!string.IsNullOrWhiteSpace(purposeMessage))
+    @if (!string.IsNullOrWhiteSpace(verseMessage))
     {
-        <small class="text-muted">@purposeMessage</small>
+        <small class="@(verseMessageIsError ? "text-danger" : "text-muted")">@verseMessage</small>
     }
 </div>
+
+@if (!string.IsNullOrWhiteSpace(purposeMessage))
+{
+    <div class="mb-3">
+        <small class="text-muted">@purposeMessage</small>
+    </div>
+}
 
 <div class="d-flex flex-wrap gap-2 mb-3">
     <button class="btn btn-outline-danger" disabled="@(selectedVerseIds.Count == 0)" @onclick="DeleteSelectedAsync">선택 삭제</button>
@@ -134,6 +153,8 @@ else
     private string newVerseType = string.Empty;
     private string newPurpose = string.Empty;
     private string? purposeMessage;
+    private string? verseMessage;
+    private bool verseMessageIsError;
     private HashSet<Guid> selectedVerseIds = new HashSet<Guid>();
     private bool isAllSelected;
     private Dictionary<string, string> bibleEntries = new Dictionary<string, string>();
@@ -141,6 +162,9 @@ else
     private string? bibleBook;
     private string bibleChapter = string.Empty;
     private string bibleVerse = string.Empty;
+    private readonly Dictionary<string, SortedDictionary<int, int>> bibleIndex = new();
+    private List<string> bibleChapterOptions = new List<string>();
+    private List<string> bibleVerseOptions = new List<string>();
     private string? bibleSearchMessage;
     private string? bibleSearchResult;
     private string? bibleSearchKey;
@@ -153,12 +177,25 @@ else
 
     private async Task AddVerseAsync()
     {
+        verseMessage = null;
+        verseMessageIsError = false;
         if (string.IsNullOrWhiteSpace(newVerseText) || string.IsNullOrWhiteSpace(newVerseType))
         {
+            verseMessage = "말씀과 용도를 입력해 주세요.";
+            verseMessageIsError = true;
+            return;
+        }
+
+        var normalizedText = newVerseText.Trim();
+        if (verses.Any(verse => string.Equals(verse.Text.Trim(), normalizedText, StringComparison.Ordinal)))
+        {
+            verseMessage = "이미 등록된 말씀입니다.";
+            verseMessageIsError = true;
             return;
         }
 
         await DataStore.AddVerseAsync(newVerseText, newVerseType);
+        verseMessage = "말씀을 추가했습니다.";
         newVerseText = string.Empty;
         await ReloadAsync();
     }
@@ -237,11 +274,32 @@ else
             var json = await File.ReadAllTextAsync(biblePath);
             bibleEntries = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json)
                 ?? new Dictionary<string, string>();
+            bibleIndex.Clear();
+            foreach (var key in bibleEntries.Keys)
+            {
+                if (!TryParseReference(key, out var book, out var chapter, out var verse))
+                {
+                    continue;
+                }
+
+                if (!bibleIndex.TryGetValue(book, out var chapters))
+                {
+                    chapters = new SortedDictionary<int, int>();
+                    bibleIndex[book] = chapters;
+                }
+
+                if (!chapters.TryGetValue(chapter, out var maxVerse) || verse > maxVerse)
+                {
+                    chapters[chapter] = verse;
+                }
+            }
+
             bibleBooks = BuildBibleBookList(bibleEntries.Keys);
             if (bibleBooks.Count > 0)
             {
                 bibleBook ??= bibleBooks[0];
             }
+            UpdateChapterOptions();
         }
         catch (Exception ex)
         {
@@ -363,5 +421,140 @@ else
         }
 
         return books;
+    }
+
+    private void UpdateChapterOptions()
+    {
+        bibleChapterOptions.Clear();
+        bibleVerseOptions.Clear();
+
+        if (string.IsNullOrWhiteSpace(bibleBook) || !bibleIndex.TryGetValue(bibleBook, out var chapters))
+        {
+            bibleChapter = string.Empty;
+            bibleVerse = string.Empty;
+            return;
+        }
+
+        bibleChapterOptions = chapters.Keys.Select(value => value.ToString()).ToList();
+        if (bibleChapterOptions.Count == 0)
+        {
+            bibleChapter = string.Empty;
+            bibleVerse = string.Empty;
+            return;
+        }
+
+        if (!bibleChapterOptions.Contains(bibleChapter))
+        {
+            bibleChapter = bibleChapterOptions[0];
+        }
+
+        UpdateVerseOptions();
+    }
+
+    private void UpdateVerseOptions()
+    {
+        bibleVerseOptions.Clear();
+
+        if (string.IsNullOrWhiteSpace(bibleBook) || !bibleIndex.TryGetValue(bibleBook, out var chapters))
+        {
+            bibleVerse = string.Empty;
+            return;
+        }
+
+        if (!int.TryParse(bibleChapter, out var chapter) || !chapters.TryGetValue(chapter, out var maxVerse))
+        {
+            bibleVerse = string.Empty;
+            return;
+        }
+
+        bibleVerseOptions = Enumerable.Range(1, maxVerse)
+            .Select(value => value.ToString())
+            .ToList();
+
+        if (bibleVerseOptions.Count == 0)
+        {
+            bibleVerse = string.Empty;
+            return;
+        }
+
+        if (!bibleVerseOptions.Contains(bibleVerse))
+        {
+            bibleVerse = bibleVerseOptions[0];
+        }
+    }
+
+    private static bool TryParseReference(string key, out string book, out int chapter, out int verse)
+    {
+        book = string.Empty;
+        chapter = 0;
+        verse = 0;
+
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return false;
+        }
+
+        var trimmed = key.Trim();
+        var index = 0;
+        while (index < trimmed.Length && !char.IsDigit(trimmed[index]))
+        {
+            index++;
+        }
+
+        if (index == 0 || index >= trimmed.Length)
+        {
+            return false;
+        }
+
+        var rest = trimmed[index..];
+        var colonIndex = rest.IndexOf(':');
+        if (colonIndex <= 0 || colonIndex >= rest.Length - 1)
+        {
+            return false;
+        }
+
+        if (!int.TryParse(rest[..colonIndex], out chapter) || !int.TryParse(rest[(colonIndex + 1)..], out verse))
+        {
+            return false;
+        }
+
+        book = trimmed[..index];
+        return chapter > 0 && verse > 0;
+    }
+
+    private string? BibleBook
+    {
+        get => bibleBook;
+        set
+        {
+            if (bibleBook == value)
+            {
+                return;
+            }
+
+            bibleBook = value;
+            UpdateChapterOptions();
+        }
+    }
+
+    private string BibleChapter
+    {
+        get => bibleChapter;
+        set
+        {
+            if (bibleChapter == value)
+            {
+                return;
+            }
+
+            bibleChapter = value ?? string.Empty;
+            UpdateVerseOptions();
+        }
+    }
+
+    private string BibleVerse
+    {
+        get => bibleVerse;
+        set => bibleVerse = value ?? string.Empty;
     }
 }
