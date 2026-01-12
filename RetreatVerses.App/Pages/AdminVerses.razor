@@ -506,7 +506,7 @@ else
     private void ApplyBibleBookOrder()
     {
         var useAlpha = string.Equals(bibleBookOrder, "alpha", StringComparison.Ordinal);
-        var keys = bibleKeyOrder.Count > 0 ? bibleKeyOrder : bibleEntries.Keys;
+        IEnumerable<string> keys = bibleKeyOrder.Count > 0 ? bibleKeyOrder : bibleEntries.Keys;
         bibleBooks = BuildBibleBookList(keys, useAlpha);
         if (bibleBooks.Count == 0)
         {
