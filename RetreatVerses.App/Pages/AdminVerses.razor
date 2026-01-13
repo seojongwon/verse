@@ -154,13 +154,26 @@ else
                     </td>
                     <td>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <img src="@GetQrCodeDataUrl(verse)" alt="말씀 등록 QR 코드" style="width: 90px; height: 90px; margin-right: 8px;" />
+                            @if (qrCodeCache.TryGetValue(verse.Id, out var qrDataUrl))
+                            {
+                                <img src="@qrDataUrl" alt="말씀 등록 QR 코드" style="width: 90px; height: 90px; margin-right: 8px;" />
+                            }
+                            else
+                            {
+                                <div class="d-flex align-items-center justify-content-center text-muted border rounded"
+                                     style="width: 90px; height: 90px; margin-right: 8px;">
+                                    QR 생성중
+                                </div>
+                            }
                             <a class="btn btn-sm btn-outline-secondary" href="@GetQrUrl(verse)" target="_blank" rel="noopener" aria-label="링크 열기" title="링크 열기">
                                 <span class="material-symbols-rounded nav-icon" aria-hidden="true">open_in_new</span>
                             </a>
-                            <a class="btn btn-sm btn-outline-primary" href="@GetQrCodeDataUrl(verse)" download="@GetQrFileName(verse)" aria-label="QR 다운로드" title="QR 다운로드">
-                                <span class="material-symbols-rounded nav-icon" aria-hidden="true">download</span>
-                            </a>
+                            @if (qrCodeCache.TryGetValue(verse.Id, out var downloadUrl))
+                            {
+                                <a class="btn btn-sm btn-outline-primary" href="@downloadUrl" download="@GetQrFileName(verse)" aria-label="QR 다운로드" title="QR 다운로드">
+                                    <span class="material-symbols-rounded nav-icon" aria-hidden="true">download</span>
+                                </a>
+                            }
                         </div>
                     </td>
                     <td>
@@ -202,6 +215,8 @@ else
     private string? bibleSearchResult;
     private string? bibleSearchKey;
     private readonly Dictionary<Guid, string> qrCodeCache = new Dictionary<Guid, string>();
+    private readonly Queue<Guid> qrQueue = new Queue<Guid>();
+    private bool isQrGenerating;
     private bool showVerseId;
 
     protected override async Task OnInitializedAsync()
@@ -251,19 +266,14 @@ else
             newVerseType = purposes[0];
         }
         SyncSelection();
-        foreach (var verse in verses)
-        {
-            if (!qrCodeCache.ContainsKey(verse.Id))
-            {
-                qrCodeCache[verse.Id] = BuildQrDataUrl(verse);
-            }
-        }
+        EnqueueMissingQrCodes();
     }
 
     private async Task DeleteVerseAsync(Verse verse)
     {
         await DataStore.DeleteVerseAsync(verse.Id);
         qrCodeCache.Remove(verse.Id);
+        RemoveFromQueue(verse.Id);
         await ReloadAsync();
     }
 
@@ -667,9 +677,7 @@ else
             return cached;
         }
 
-        var generated = BuildQrDataUrl(verse);
-        qrCodeCache[verse.Id] = generated;
-        return generated;
+        return string.Empty;
     }
 
     private string BuildQrDataUrl(Verse verse)
@@ -680,5 +688,60 @@ else
         var png = new QRCoder.PngByteQRCode(data);
         var bytes = png.GetGraphic(8);
         return $"data:image/png;base64,{Convert.ToBase64String(bytes)}";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (isQrGenerating || qrQueue.Count == 0)
+        {
+            return;
+        }
+
+        isQrGenerating = true;
+        var id = qrQueue.Dequeue();
+        var verse = verses.FirstOrDefault(v => v.Id == id);
+        if (verse != null && !qrCodeCache.ContainsKey(verse.Id))
+        {
+            qrCodeCache[verse.Id] = BuildQrDataUrl(verse);
+        }
+        isQrGenerating = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void EnqueueMissingQrCodes()
+    {
+        var known = new HashSet<Guid>(qrQueue);
+        foreach (var verse in verses)
+        {
+            if (qrCodeCache.ContainsKey(verse.Id) || known.Contains(verse.Id))
+            {
+                continue;
+            }
+
+            qrQueue.Enqueue(verse.Id);
+        }
+    }
+
+    private void RemoveFromQueue(Guid id)
+    {
+        if (qrQueue.Count == 0)
+        {
+            return;
+        }
+
+        var remaining = new Queue<Guid>();
+        while (qrQueue.Count > 0)
+        {
+            var next = qrQueue.Dequeue();
+            if (next != id)
+            {
+                remaining.Enqueue(next);
+            }
+        }
+
+        while (remaining.Count > 0)
+        {
+            qrQueue.Enqueue(remaining.Dequeue());
+        }
     }
 }
