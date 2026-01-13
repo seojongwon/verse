@@ -18,6 +18,9 @@
 <div class="d-flex flex-wrap gap-2 mb-3">
     <button class="btn btn-outline-danger" disabled="@(selectedGroupIds.Count == 0)" @onclick="DeleteSelectedAsync">선택 삭제</button>
     <button class="btn btn-outline-danger" disabled="@(groups.Count == 0)" @onclick="DeleteAllAsync">전체 삭제</button>
+    <button class="btn btn-outline-secondary" @onclick="ToggleGroupIdVisibility">
+        @(showGroupId ? "조 ID 숨기기" : "조 ID 보이기")
+    </button>
 </div>
 
 @if (groups.Count == 0)
@@ -38,7 +41,10 @@ else
                 <th class="text-start align-middle">비밀번호</th>
                 <th class="text-start align-middle">작업</th>
                 <th class="text-start align-middle">조 링크</th>
-                <th class="text-start align-middle">조 ID</th>
+                @if (showGroupId)
+                {
+                    <th class="text-start align-middle">조 ID</th>
+                }
             </tr>
         </thead>
         <tbody>
@@ -66,7 +72,10 @@ else
                         <a class="btn btn-sm btn-outline-secondary me-2" href="/group/@group.Id/verses">목록</a>
                         <a class="btn btn-sm btn-outline-secondary" href="/use/@group.Id">사용</a>
                     </td>
-                    <td class="text-muted">@group.Id</td>
+                    @if (showGroupId)
+                    {
+                        <td class="text-muted">@group.Id</td>
+                    }
                 </tr>
             }
         </tbody>
@@ -80,6 +89,7 @@ else
     private HashSet<Guid> selectedGroupIds = new HashSet<Guid>();
     private bool isAllSelected;
     private readonly Dictionary<Guid, string> passwordInputs = new Dictionary<Guid, string>();
+    private bool showGroupId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -134,6 +144,11 @@ else
     {
         await DataStore.DeleteAllGroupsAsync();
         await ReloadAsync();
+    }
+
+    private void ToggleGroupIdVisibility()
+    {
+        showGroupId = !showGroupId;
     }
 
     private void ToggleGroupSelection(Guid id, ChangeEventArgs args)
