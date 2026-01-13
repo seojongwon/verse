@@ -147,16 +147,14 @@ else
                         </select>
                     </td>
                     <td>
-                        <div class="d-flex flex-column align-items-start gap-2">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
                             <img src="@GetQrCodeDataUrl(verse)" alt="말씀 등록 QR 코드" style="width: 90px; height: 90px;" />
-                            <div class="d-flex flex-wrap gap-2">
-                                <a class="btn btn-sm btn-outline-secondary" href="@GetQrUrl(verse)" target="_blank" rel="noopener" aria-label="링크 열기" title="링크 열기">
-                                    <span class="material-symbols-rounded nav-icon" aria-hidden="true">open_in_new</span>
-                                </a>
-                                <a class="btn btn-sm btn-outline-primary" href="@GetQrCodeDataUrl(verse)" download="@GetQrFileName(verse)" aria-label="QR 다운로드" title="QR 다운로드">
-                                    <span class="material-symbols-rounded nav-icon" aria-hidden="true">download</span>
-                                </a>
-                            </div>
+                            <a class="btn btn-sm btn-outline-secondary" href="@GetQrUrl(verse)" target="_blank" rel="noopener" aria-label="링크 열기" title="링크 열기">
+                                <span class="material-symbols-rounded nav-icon" aria-hidden="true">open_in_new</span>
+                            </a>
+                            <a class="btn btn-sm btn-outline-primary" href="@GetQrCodeDataUrl(verse)" download="@GetQrFileName(verse)" aria-label="QR 다운로드" title="QR 다운로드">
+                                <span class="material-symbols-rounded nav-icon" aria-hidden="true">download</span>
+                            </a>
                         </div>
                     </td>
                     <td>
