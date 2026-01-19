@@ -4,7 +4,7 @@
 @inject IDataStore DataStore
 @inject NavigationManager NavigationManager
 
-<h3>사용용 QR 코드 생성</h3>
+<h3>사용처 QR 코드 생성</h3>
 
 <p class="text-muted">유형을 선택하면 해당 사용 페이지로 이동하는 QR 코드를 생성합니다.</p>
 
@@ -81,7 +81,7 @@
         var png = new QRCoder.PngByteQRCode(data);
         var bytes = png.GetGraphic(20);
         qrCodeDataUrl = $"data:image/png;base64,{Convert.ToBase64String(bytes)}";
-        qrFileName = $"use-qr-{SanitizeFileName(selectedPurpose)}.png";
+        qrFileName = $"use-qr-{PurposeSlug.ToSlug(selectedPurpose)}.png";
     }
 
     private string? BuildQrUrl()
@@ -91,19 +91,8 @@
             return null;
         }
 
-        var encoded = Uri.EscapeDataString(selectedPurpose.Trim());
+        var encoded = PurposeSlug.ToSlug(selectedPurpose);
         var baseUri = NavigationManager.BaseUri.TrimEnd('/');
         return $"{baseUri}/use/{encoded}";
-    }
-
-    private static string SanitizeFileName(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return "purpose";
-        }
-
-        var cleaned = new string(value.Trim().Select(c => char.IsLetterOrDigit(c) ? c : '-').ToArray());
-        return string.IsNullOrWhiteSpace(cleaned) ? "purpose" : cleaned.ToLowerInvariant();
     }
 }
