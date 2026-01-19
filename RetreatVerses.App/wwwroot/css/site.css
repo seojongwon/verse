@@ -352,6 +352,16 @@ a.btn + a.btn {
     color: var(--md-sys-color-on-surface);
 }
 
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive .table {
+    margin-bottom: 0;
+}
+
 .table th,
 .table td {
     padding: 0.75rem 1rem;
@@ -361,6 +371,11 @@ a.btn + a.btn {
 
 .table-nowrap {
     white-space: nowrap;
+}
+
+.table-wrap {
+    white-space: normal;
+    word-break: break-word;
 }
 
 .table thead th {
@@ -374,6 +389,21 @@ a.btn + a.btn {
 
 .table-striped tbody tr:nth-of-type(odd) {
     background-color: rgba(226, 232, 240, 0.35);
+}
+
+@media (max-width: 768px) {
+    .table-responsive .table {
+        min-width: max-content;
+    }
+
+    .table-responsive .table th,
+    .table-responsive .table td {
+        white-space: nowrap;
+    }
+
+    .table-responsive .table .table-wrap {
+        white-space: normal;
+    }
 }
 
 @media (prefers-color-scheme: dark) {

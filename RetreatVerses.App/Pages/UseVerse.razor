@@ -121,7 +121,7 @@
         }
         else
         {
-            <div class="use-verse__table">
+            <div class="use-verse__table table-responsive">
                 <table class="table table-borderless align-middle">
                     <thead>
                         <tr>
@@ -133,7 +133,7 @@
                         @foreach (var item in available)
                         {
                             <tr>
-                                <td class="use-verse__text">@item.Text</td>
+                                <td class="use-verse__text table-wrap">@item.Text</td>
                                 <td class="text-end use-verse__action">
                                     <button class="btn btn-sm use-verse__use-button" @onclick="() => UseAsync(item)">사용</button>
                                 </td>
@@ -176,6 +176,8 @@
     protected override async Task OnInitializedAsync()
     {
         ResolveUseOption();
+        purposes = (await DataStore.GetVersePurposesAsync()).ToList();
+        ResolveUseOptionWithPurposes();
         if (GroupId.HasValue && GroupId.Value != Guid.Empty)
         {
             var groups = await DataStore.GetGroupsAsync();
@@ -315,6 +317,27 @@
         }
     }
 
+    private void ResolveUseOptionWithPurposes()
+    {
+        if (activeUseOption == null || purposes.Count == 0)
+        {
+            return;
+        }
+
+        var isPreset = UseOptions.Any(o =>
+            string.Equals(o.Key, activeUseOption.Key, StringComparison.OrdinalIgnoreCase));
+        if (isPreset)
+        {
+            return;
+        }
+
+        var resolved = PurposeSlug.Resolve(activeUseOption.Key, purposes);
+        if (!string.IsNullOrWhiteSpace(resolved))
+        {
+            activeUseOption = new UseOption(activeUseOption.Key, resolved, new[] { resolved });
+        }
+    }
+
     private IReadOnlyList<string> GetAllowedTypes()
     {
         if (activeUseOption != null)
@@ -336,6 +359,7 @@
         registrations = (await DataStore.GetRegistrationsForGroupAsync(resolvedGroupId)).ToList();
         verseMap = (await DataStore.GetVersesAsync()).ToDictionary(v => v.Id, v => v);
         purposes = (await DataStore.GetVersePurposesAsync()).ToList();
+        ResolveUseOptionWithPurposes();
         if (activeUseOption == null && purposes.Count > 0 && (string.IsNullOrWhiteSpace(selectedType) || !purposes.Contains(selectedType)))
         {
             selectedType = purposes[0];

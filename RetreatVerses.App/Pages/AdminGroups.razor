@@ -29,57 +29,59 @@
 }
 else
 {
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th class="text-center align-middle">
-                    <div class="d-flex justify-content-center align-items-center">
-                        <input class="md-checkbox" type="checkbox" @bind="IsAllSelected" />
-                    </div>
-                </th>
-                <th class="text-start align-middle">조 이름</th>
-                <th class="text-start align-middle">비밀번호</th>
-                <th class="text-start align-middle">작업</th>
-                <th class="text-start align-middle">조 링크</th>
-                @if (showGroupId)
-                {
-                    <th class="text-start align-middle">조 ID</th>
-                }
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var group in groups)
-            {
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
                 <tr>
-                    <td class="text-center align-middle">
-                        <input class="md-checkbox" type="checkbox" checked="@selectedGroupIds.Contains(group.Id)" @onchange="(e => ToggleGroupSelection(group.Id, e))" />
-                    </td>
-                    <td>
-                        <input class="form-control" @bind="group.Name" />
-                    </td>
-                    <td>
-                        <input class="form-control" type="password" autocomplete="new-password"
-                               placeholder="변경 시 입력"
-                               @bind-value:get="GetPasswordInput(group.Id)"
-                               @bind-value:set="value => SetPasswordInput(group.Id, value)"
-                               @bind-value:event="oninput" />
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" @onclick="() => SaveGroupAsync(group)">저장</button>
-                        <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteGroupAsync(group)">삭제</button>
-                    </td>
-                    <td>
-                        <a class="btn btn-sm btn-outline-secondary me-2" href="/group/@group.Id/verses">목록</a>
-                        <a class="btn btn-sm btn-outline-secondary" href="/use/@group.Id">사용</a>
-                    </td>
+                    <th class="text-center align-middle">
+                        <div class="d-flex justify-content-center align-items-center">
+                            <input class="md-checkbox" type="checkbox" @bind="IsAllSelected" />
+                        </div>
+                    </th>
+                    <th class="text-start align-middle">조 이름</th>
+                    <th class="text-start align-middle">비밀번호</th>
+                    <th class="text-start align-middle">작업</th>
+                    <th class="text-start align-middle">조 링크</th>
                     @if (showGroupId)
                     {
-                        <td class="text-muted">@group.Id</td>
+                        <th class="text-start align-middle">조 ID</th>
                     }
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var group in groups)
+                {
+                    <tr>
+                        <td class="text-center align-middle">
+                            <input class="md-checkbox" type="checkbox" checked="@selectedGroupIds.Contains(group.Id)" @onchange="(e => ToggleGroupSelection(group.Id, e))" />
+                        </td>
+                        <td>
+                            <input class="form-control" @bind="group.Name" />
+                        </td>
+                        <td>
+                            <input class="form-control" type="password" autocomplete="new-password"
+                                   placeholder="변경 시 입력"
+                                   @bind-value:get="GetPasswordInput(group.Id)"
+                                   @bind-value:set="value => SetPasswordInput(group.Id, value)"
+                                   @bind-value:event="oninput" />
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => SaveGroupAsync(group)">저장</button>
+                            <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteGroupAsync(group)">삭제</button>
+                        </td>
+                        <td>
+                            <a class="btn btn-sm btn-outline-secondary me-2" href="/group/@group.Id/verses">목록</a>
+                            <a class="btn btn-sm btn-outline-secondary" href="/use/@group.Id">사용</a>
+                        </td>
+                        @if (showGroupId)
+                        {
+                            <td class="text-muted">@group.Id</td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 
 @code {

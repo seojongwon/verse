@@ -116,78 +116,80 @@
 }
 else
 {
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th class="text-center align-middle">
-                    <div class="d-flex justify-content-center align-items-center">
-                        <input class="md-checkbox" type="checkbox" @bind="IsAllSelected" />
-                    </div>
-                </th>
-                <th class="text-start align-middle">말씀</th>
-                <th class="text-start align-middle">유형</th>
-                <th class="text-start align-middle">QR</th>
-                <th class="text-start align-middle">작업</th>
-                @if (showVerseId)
-                {
-                    <th class="text-start align-middle">말씀 ID</th>
-                }
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var verse in verses)
-            {
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
                 <tr>
-                    <td class="text-center align-middle">
-                        <input class="md-checkbox" type="checkbox" checked="@selectedVerseIds.Contains(verse.Id)" @onchange="(e => ToggleVerseSelection(verse.Id, e))" />
-                    </td>
-                    <td style="min-width: 300px;">
-                        <textarea class="form-control" rows="2" @bind="verse.Text"></textarea>
-                    </td>
-                    <td>
-                        <select class="form-select" @bind="verse.Type">
-                            @foreach (var purpose in purposes)
-                            {
-                                <option value="@purpose">@purpose</option>
-                            }
-                        </select>
-                    </td>
-                    <td>
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            @if (qrCodeCache.TryGetValue(verse.Id, out var qrDataUrl))
-                            {
-                                <img src="@qrDataUrl" alt="말씀 등록 QR 코드" style="width: 90px; height: 90px; margin-right: 8px;" />
-                            }
-                            else
-                            {
-                                <div class="d-flex align-items-center justify-content-center text-muted border rounded"
-                                     style="width: 90px; height: 90px; margin-right: 8px;">
-                                    QR 생성중
-                                </div>
-                            }
-                            <a class="btn btn-sm btn-outline-secondary" href="@GetQrUrl(verse)" target="_blank" rel="noopener" aria-label="링크 열기" title="링크 열기">
-                                <span class="material-symbols-rounded nav-icon" aria-hidden="true">open_in_new</span>
-                            </a>
-                            @if (qrCodeCache.TryGetValue(verse.Id, out var downloadUrl))
-                            {
-                                <a class="btn btn-sm btn-outline-primary" href="@downloadUrl" download="@GetQrFileName(verse)" aria-label="QR 다운로드" title="QR 다운로드">
-                                    <span class="material-symbols-rounded nav-icon" aria-hidden="true">download</span>
-                                </a>
-                            }
+                    <th class="text-center align-middle">
+                        <div class="d-flex justify-content-center align-items-center">
+                            <input class="md-checkbox" type="checkbox" @bind="IsAllSelected" />
                         </div>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" @onclick="() => SaveVerseAsync(verse)">저장</button>
-                        <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteVerseAsync(verse)">삭제</button>
-                    </td>
+                    </th>
+                    <th class="text-start align-middle">말씀</th>
+                    <th class="text-start align-middle">유형</th>
+                    <th class="text-start align-middle">QR</th>
+                    <th class="text-start align-middle">작업</th>
                     @if (showVerseId)
                     {
-                        <td class="text-muted">@verse.Id</td>
+                        <th class="text-start align-middle">말씀 ID</th>
                     }
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var verse in verses)
+                {
+                    <tr>
+                        <td class="text-center align-middle">
+                            <input class="md-checkbox" type="checkbox" checked="@selectedVerseIds.Contains(verse.Id)" @onchange="(e => ToggleVerseSelection(verse.Id, e))" />
+                        </td>
+                        <td style="min-width: 300px;">
+                            <textarea class="form-control" rows="2" @bind="verse.Text"></textarea>
+                        </td>
+                        <td>
+                            <select class="form-select" @bind="verse.Type">
+                                @foreach (var purpose in purposes)
+                                {
+                                    <option value="@purpose">@purpose</option>
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                @if (qrCodeCache.TryGetValue(verse.Id, out var qrDataUrl))
+                                {
+                                    <img src="@qrDataUrl" alt="말씀 등록 QR 코드" style="width: 90px; height: 90px; margin-right: 8px;" />
+                                }
+                                else
+                                {
+                                    <div class="d-flex align-items-center justify-content-center text-muted border rounded"
+                                         style="width: 90px; height: 90px; margin-right: 8px;">
+                                        QR 생성중
+                                    </div>
+                                }
+                                <a class="btn btn-sm btn-outline-secondary" href="@GetQrUrl(verse)" target="_blank" rel="noopener" aria-label="링크 열기" title="링크 열기">
+                                    <span class="material-symbols-rounded nav-icon" aria-hidden="true">open_in_new</span>
+                                </a>
+                                @if (qrCodeCache.TryGetValue(verse.Id, out var downloadUrl))
+                                {
+                                    <a class="btn btn-sm btn-outline-primary" href="@downloadUrl" download="@GetQrFileName(verse)" aria-label="QR 다운로드" title="QR 다운로드">
+                                        <span class="material-symbols-rounded nav-icon" aria-hidden="true">download</span>
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => SaveVerseAsync(verse)">저장</button>
+                            <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteVerseAsync(verse)">삭제</button>
+                        </td>
+                        @if (showVerseId)
+                        {
+                            <td class="text-muted">@verse.Id</td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 
 @code {

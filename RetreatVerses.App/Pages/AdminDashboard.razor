@@ -62,70 +62,76 @@ else
         </div>
     </div>
 
-    <table class="table table-striped mb-4">
-        <thead>
-            <tr>
-                <th>조 이름</th>
-                <th>등록</th>
-                <th>사용</th>
-                <th>암송</th>
-                <th>미처리</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in stats)
-            {
+    <div class="table-responsive mb-4">
+        <table class="table table-striped">
+            <thead>
                 <tr>
-                    <td>@item.GroupName</td>
-                    <td>@item.Total</td>
-                    <td>@item.Used</td>
-                    <td>@item.Recited</td>
-                    <td>@item.Pending</td>
+                    <th>조 이름</th>
+                    <th>등록</th>
+                    <th>사용</th>
+                    <th>암송</th>
+                    <th>미처리</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var item in stats)
+                {
+                    <tr>
+                        <td>@item.GroupName</td>
+                        <td>@item.Total</td>
+                        <td>@item.Used</td>
+                        <td>@item.Recited</td>
+                        <td>@item.Pending</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 
     <div class="row g-3">
         <div class="col-md-6">
             <h5 class="mb-3">사용별 순위</h5>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>조 이름</th>
-                        <th>사용</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in topByUsed)
-                    {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
                         <tr>
-                            <td>@item.GroupName</td>
-                            <td>@item.Used</td>
+                            <th>조 이름</th>
+                            <th>사용</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in topByUsed)
+                        {
+                            <tr>
+                                <td>@item.GroupName</td>
+                                <td>@item.Used</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
         <div class="col-md-6">
             <h5 class="mb-3">암송별 순위</h5>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>조 이름</th>
-                        <th>암송</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in topByRecited)
-                    {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
                         <tr>
-                            <td>@item.GroupName</td>
-                            <td>@item.Recited</td>
+                            <th>조 이름</th>
+                            <th>암송</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in topByRecited)
+                        {
+                            <tr>
+                                <td>@item.GroupName</td>
+                                <td>@item.Recited</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 }
