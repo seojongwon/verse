@@ -334,7 +334,7 @@
         var resolved = PurposeSlug.Resolve(activeUseOption.Key, purposes);
         if (!string.IsNullOrWhiteSpace(resolved))
         {
-            activeUseOption = new UseOption(activeUseOption.Key, resolved, new[] { resolved });
+            activeUseOption = new UseOption(activeUseOption.Key, resolved, new[] { resolved! });
         }
     }
 
