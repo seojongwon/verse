@@ -1,0 +1,87 @@
+@page "/user"
+@using RetreatVerses.App.Data
+@inject IDataStore DataStore
+
+<section class="user-dashboard">
+    <header class="user-dashboard__header">
+        <p class="user-dashboard__eyebrow">사용자 대시보드</p>
+        <h3 class="user-dashboard__title">말씀 현황</h3>
+    </header>
+
+    <div class="user-dashboard__panel">
+        <div class="user-dashboard__metric">
+            <span class="user-dashboard__label">등록된 말씀</span>
+            <strong class="user-dashboard__value">@totalVerses</strong>
+        </div>
+
+        <div class="user-dashboard__section">
+            <p class="user-dashboard__section-title">용도별 말씀 수</p>
+            @if (purposeCounts.Count == 0)
+            {
+                <p class="text-muted">등록된 말씀이 없습니다.</p>
+            }
+            else
+            {
+                <ul class="user-dashboard__list">
+                    @foreach (var item in purposeCounts)
+                    {
+                        <li class="user-dashboard__list-item">
+                            <span>@item.Purpose</span>
+                            <strong>@item.Count</strong>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+
+        <div class="user-dashboard__section">
+            <p class="user-dashboard__section-title">최근 선택 단어</p>
+            @if (latestGuardWord == null)
+            {
+                <p class="text-muted">등록된 단어가 없습니다.</p>
+            }
+            else
+            {
+                <div class="user-dashboard__word">
+                    <strong>@latestGuardWord.Word</strong>
+                    <p class="user-dashboard__verse">@latestGuardWord.VerseText</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@code {
+    private int totalVerses;
+    private List<PurposeCount> purposeCounts = new List<PurposeCount>();
+    private GuardWordEntry? latestGuardWord;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var verses = await DataStore.GetVersesAsync();
+        totalVerses = verses.Count;
+        purposeCounts = verses
+            .GroupBy(v => v.Type)
+            .Select(g => new PurposeCount(g.Key, g.Count()))
+            .OrderByDescending(x => x.Count)
+            .ThenBy(x => x.Purpose)
+            .ToList();
+
+        var guardWords = await DataStore.GetGuardWordsAsync();
+        latestGuardWord = guardWords
+            .OrderByDescending(w => w.CreatedAt)
+            .FirstOrDefault();
+    }
+
+    private sealed class PurposeCount
+    {
+        public PurposeCount(string purpose, int count)
+        {
+            Purpose = purpose;
+            Count = count;
+        }
+
+        public string Purpose { get; }
+        public int Count { get; }
+    }
+}

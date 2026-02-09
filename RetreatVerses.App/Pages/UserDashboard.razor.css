@@ -1,0 +1,110 @@
+.user-dashboard {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem;
+}
+
+.user-dashboard__header {
+    margin-bottom: 1.5rem;
+}
+
+.user-dashboard__eyebrow {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.user-dashboard__title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0.35rem 0 0.5rem;
+    color: var(--md-sys-color-on-surface);
+}
+
+.user-dashboard__panel {
+    background: var(--md-sys-color-surface);
+    border-radius: 20px;
+    box-shadow: var(--md-shadow-2);
+    padding: 1.5rem 1.75rem;
+    display: grid;
+    gap: 1.5rem;
+}
+
+.user-dashboard__metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+}
+
+.user-dashboard__label {
+    font-weight: 700;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.user-dashboard__value {
+    font-size: 1.6rem;
+    font-weight: 800;
+}
+
+.user-dashboard__section-title {
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.user-dashboard__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.user-dashboard__list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 12px;
+    padding: 0.6rem 0.9rem;
+    font-weight: 600;
+}
+
+.user-dashboard__word {
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 14px;
+    padding: 0.9rem 1rem;
+    background: rgba(15, 118, 110, 0.08);
+}
+
+.user-dashboard__word strong {
+    font-size: 1.2rem;
+}
+
+.user-dashboard__verse {
+    margin-top: 0.5rem;
+    color: var(--md-sys-color-on-surface-variant);
+    font-weight: 600;
+}
+
+@media (max-width: 640px) {
+    .user-dashboard {
+        padding: 1.5rem 1rem;
+    }
+
+    .user-dashboard__title {
+        font-size: 1.6rem;
+    }
+
+    .user-dashboard__panel {
+        padding: 1.1rem 1.1rem;
+    }
+
+    .user-dashboard__metric {
+        padding: 0.8rem 1rem;
+    }
+}
