@@ -24,6 +24,12 @@
     else
     {
         <div class="group-add-row">
+            <select class="form-select group-add-input" @bind="selectedGuardGroupId">
+                @foreach (var item in groups)
+                {
+                    <option value="@item.Id">@item.Name</option>
+                }
+            </select>
             <select class="form-select group-add-input" @bind="selectedGuardVerseId">
                 @foreach (var verse in guardVerses)
                 {
@@ -120,6 +126,7 @@ else
     private const string GuardPurpose = "수호용";
     private List<Verse> guardVerses = new List<Verse>();
     private Guid selectedGuardVerseId;
+    private Guid selectedGuardGroupId;
     private string guardWordInput = string.Empty;
     private string? guardWordMessage;
 
@@ -154,6 +161,10 @@ else
         groups = (await DataStore.GetGroupsAsync()).ToList();
         var verses = await DataStore.GetVersesAsync();
         guardVerses = verses.Where(v => string.Equals(v.Type, GuardPurpose, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (groups.Count > 0 && !groups.Any(g => g.Id == selectedGuardGroupId))
+        {
+            selectedGuardGroupId = groups[0].Id;
+        }
         if (guardVerses.Count > 0 && !guardVerses.Any(v => v.Id == selectedGuardVerseId))
         {
             selectedGuardVerseId = guardVerses[0].Id;
@@ -230,6 +241,13 @@ else
             return;
         }
 
+        if (groups.Count == 0)
+        {
+            guardWordMessage = "등록된 조가 없습니다.";
+            return;
+        }
+
+        var group = groups.FirstOrDefault(g => g.Id == selectedGuardGroupId) ?? groups[0];
         var verse = guardVerses.FirstOrDefault(v => v.Id == selectedGuardVerseId) ?? guardVerses[0];
         var word = guardWordInput.Trim();
         if (word.Length < 2)
@@ -244,7 +262,7 @@ else
             return;
         }
 
-        await DataStore.AddGuardWordAsync(verse.Text, word);
+        await DataStore.AddGuardWordAsync(group.Id, verse.Text, word);
         guardWordInput = string.Empty;
         guardWordMessage = "단어가 등록되었습니다.";
     }

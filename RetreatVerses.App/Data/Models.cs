@@ -28,6 +28,7 @@ namespace RetreatVerses.App.Data
     public sealed class GuardWordEntry
     {
         public Guid Id { get; set; }
+        public Guid GroupId { get; set; }
         public string VerseText { get; set; } = string.Empty;
         public string Word { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }

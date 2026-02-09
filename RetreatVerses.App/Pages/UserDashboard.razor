@@ -119,8 +119,18 @@
     private async Task LoadDashboardAsync()
     {
         var verses = await DataStore.GetVersesAsync();
-        totalVerses = verses.Count;
-        purposeCounts = verses
+        var verseMap = verses.ToDictionary(v => v.Id, v => v);
+        var registrations = await DataStore.GetRegistrationsForGroupAsync(group!.Id);
+        var registeredVerses = registrations
+            .Select(r => r.VerseId)
+            .Distinct()
+            .Select(id => verseMap.TryGetValue(id, out var verse) ? verse : null)
+            .Where(v => v != null)
+            .Select(v => v!)
+            .ToList();
+
+        totalVerses = registeredVerses.Count;
+        purposeCounts = registeredVerses
             .GroupBy(v => v.Type)
             .Select(g => new PurposeCount(g.Key, g.Count()))
             .OrderByDescending(x => x.Count)
@@ -129,6 +139,7 @@
 
         var guardWords = await DataStore.GetGuardWordsAsync();
         latestGuardWord = guardWords
+            .Where(w => w.GroupId == group.Id)
             .OrderByDescending(w => w.CreatedAt)
             .FirstOrDefault();
     }

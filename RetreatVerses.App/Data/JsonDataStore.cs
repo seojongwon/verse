@@ -584,11 +584,12 @@ namespace RetreatVerses.App.Data
             }
         }
 
-        public async Task<GuardWordEntry> AddGuardWordAsync(string verseText, string word)
+        public async Task<GuardWordEntry> AddGuardWordAsync(Guid groupId, string verseText, string word)
         {
             var entry = new GuardWordEntry
             {
                 Id = Guid.NewGuid(),
+                GroupId = groupId,
                 VerseText = verseText.Trim(),
                 Word = word.Trim(),
                 CreatedAt = DateTime.UtcNow

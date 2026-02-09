@@ -32,6 +32,6 @@ namespace RetreatVerses.App.Data
         Task<OperationResult> ResetVerseStatusAsync(Guid groupId, Guid verseId);
 
         Task<IReadOnlyList<GuardWordEntry>> GetGuardWordsAsync();
-        Task<GuardWordEntry> AddGuardWordAsync(string verseText, string word);
+        Task<GuardWordEntry> AddGuardWordAsync(Guid groupId, string verseText, string word);
     }
 }
