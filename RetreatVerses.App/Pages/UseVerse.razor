@@ -42,9 +42,17 @@
             <div class="use-verse__selector">
                 <span class="use-verse__label">사용 페이지 선택</span>
                 <div class="use-verse__buttons" role="group" aria-label="사용 페이지 선택">
-                    <a class="use-verse__button" href="/use/meal">식사사용</a>
-                    <a class="use-verse__button" href="/use/snack">간식사용</a>
-                    <a class="use-verse__button" href="/use/sleep">취침사용</a>
+                    @if (purposes.Count == 0)
+                    {
+                        <span class="text-muted">등록된 말씀 용도가 없습니다.</span>
+                    }
+                    else
+                    {
+                        @foreach (var purpose in purposes)
+                        {
+                            <a class="use-verse__button" href="@GetPurposeHref(purpose)">@purpose</a>
+                        }
+                    }
                 </div>
             </div>
         }
@@ -479,6 +487,12 @@
 
         var availableIds = available.Select(v => v.VerseId).ToHashSet();
         selectedVerseIds.RemoveWhere(id => !availableIds.Contains(id));
+    }
+
+    private string GetPurposeHref(string purpose)
+    {
+        var slug = PurposeSlug.ToSlug(purpose);
+        return $"/use/{slug}";
     }
 
     private async Task<string?> GetStoredPasswordAsync(Guid groupId)
