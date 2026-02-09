@@ -15,37 +15,6 @@
     <small class="text-muted">조별 비밀번호는 말씀 사용 시 필요합니다.</small>
 </div>
 
-<div class="mb-4">
-    <label class="form-label">수호용 단어 등록</label>
-    @if (guardVerses.Count == 0)
-    {
-        <p class="text-muted">수호용으로 등록된 말씀이 없습니다.</p>
-    }
-    else
-    {
-        <div class="group-add-row">
-            <select class="form-select group-add-input" @bind="selectedGuardGroupId">
-                @foreach (var item in groups)
-                {
-                    <option value="@item.Id">@item.Name</option>
-                }
-            </select>
-            <select class="form-select group-add-input" @bind="selectedGuardVerseId">
-                @foreach (var verse in guardVerses)
-                {
-                    <option value="@verse.Id">@verse.Text</option>
-                }
-            </select>
-            <input class="form-control group-add-input" @bind="guardWordInput" placeholder="두 글자 이상의 단어" />
-            <button class="btn btn-outline-primary" @onclick="AddGuardWordAsync">등록</button>
-        </div>
-        @if (!string.IsNullOrWhiteSpace(guardWordMessage))
-        {
-            <small class="text-muted">@guardWordMessage</small>
-        }
-    }
-</div>
-
 <div class="d-flex flex-wrap gap-2 mb-3">
     <button class="btn btn-outline-danger" disabled="@(selectedGroupIds.Count == 0)" @onclick="DeleteSelectedAsync">선택 삭제</button>
     <button class="btn btn-outline-danger" disabled="@(groups.Count == 0)" @onclick="DeleteAllAsync">전체 삭제</button>
@@ -99,6 +68,7 @@ else
                         <td>
                             <button class="btn btn-sm btn-outline-primary" @onclick="() => SaveGroupAsync(group)">저장</button>
                             <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteGroupAsync(group)">삭제</button>
+                            <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="() => OpenGuardWordPanel(group)">수호단어 등록</button>
                         </td>
                         <td>
                             <a class="btn btn-sm btn-outline-secondary me-2" href="/group/@group.Id/verses">목록</a>
@@ -113,6 +83,33 @@ else
             </tbody>
         </table>
     </div>
+
+    @if (guardWordGroupId != null)
+    {
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">수호단어 등록 - @guardWordGroupName</h5>
+                @if (guardWordVerse == null)
+                {
+                    <p class="text-muted">수호용으로 등록된 말씀이 없습니다.</p>
+                }
+                else
+                {
+                    <p class="text-muted mb-2">랜덤 말씀</p>
+                    <p>@guardWordVerse.Text</p>
+                    <div class="group-add-row">
+                        <input class="form-control group-add-input" @bind="guardWordInput" placeholder="두 글자 이상의 단어" />
+                        <button class="btn btn-outline-secondary" @onclick="RefreshGuardVerse">말씀 다시 뽑기</button>
+                        <button class="btn btn-outline-primary" @onclick="AddGuardWordAsync">등록</button>
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(guardWordMessage))
+                {
+                    <small class="text-muted">@guardWordMessage</small>
+                }
+            </div>
+        </div>
+    }
 }
 
 @code {
@@ -125,8 +122,9 @@ else
     private bool showGroupId;
     private const string GuardPurpose = "수호용";
     private List<Verse> guardVerses = new List<Verse>();
-    private Guid selectedGuardVerseId;
-    private Guid selectedGuardGroupId;
+    private Guid? guardWordGroupId;
+    private string? guardWordGroupName;
+    private Verse? guardWordVerse;
     private string guardWordInput = string.Empty;
     private string? guardWordMessage;
 
@@ -161,14 +159,7 @@ else
         groups = (await DataStore.GetGroupsAsync()).ToList();
         var verses = await DataStore.GetVersesAsync();
         guardVerses = verses.Where(v => string.Equals(v.Type, GuardPurpose, StringComparison.OrdinalIgnoreCase)).ToList();
-        if (groups.Count > 0 && !groups.Any(g => g.Id == selectedGuardGroupId))
-        {
-            selectedGuardGroupId = groups[0].Id;
-        }
-        if (guardVerses.Count > 0 && !guardVerses.Any(v => v.Id == selectedGuardVerseId))
-        {
-            selectedGuardVerseId = guardVerses[0].Id;
-        }
+        SyncGuardWordPanel();
         SyncSelection();
     }
 
@@ -232,23 +223,84 @@ else
         passwordInputs[id] = value ?? string.Empty;
     }
 
+    private void OpenGuardWordPanel(Group group)
+    {
+        guardWordGroupId = group.Id;
+        guardWordGroupName = group.Name;
+        guardWordInput = string.Empty;
+        guardWordMessage = null;
+        guardWordVerse = PickRandomGuardVerse();
+    }
+
+    private void RefreshGuardVerse()
+    {
+        guardWordVerse = PickRandomGuardVerse();
+        guardWordMessage = null;
+    }
+
+    private Verse? PickRandomGuardVerse()
+    {
+        if (guardVerses.Count == 0)
+        {
+            return null;
+        }
+
+        var index = Random.Shared.Next(guardVerses.Count);
+        return guardVerses[index];
+    }
+
+    private void SyncGuardWordPanel()
+    {
+        if (guardWordGroupId == null)
+        {
+            return;
+        }
+
+        var group = groups.FirstOrDefault(g => g.Id == guardWordGroupId.Value);
+        if (group == null)
+        {
+            guardWordGroupId = null;
+            guardWordGroupName = null;
+            guardWordVerse = null;
+            guardWordInput = string.Empty;
+            guardWordMessage = null;
+            return;
+        }
+
+        guardWordGroupName = group.Name;
+        if (guardVerses.Count == 0)
+        {
+            guardWordVerse = null;
+        }
+        else if (guardWordVerse == null || !guardVerses.Any(v => v.Id == guardWordVerse.Id))
+        {
+            guardWordVerse = PickRandomGuardVerse();
+        }
+    }
+
     private async Task AddGuardWordAsync()
     {
         guardWordMessage = null;
-        if (guardVerses.Count == 0)
+        if (guardWordGroupId == null)
+        {
+            guardWordMessage = "먼저 조를 선택해 주세요.";
+            return;
+        }
+
+        if (guardVerses.Count == 0 || guardWordVerse == null)
         {
             guardWordMessage = "수호용으로 등록된 말씀이 없습니다.";
             return;
         }
 
-        if (groups.Count == 0)
+        var group = groups.FirstOrDefault(g => g.Id == guardWordGroupId.Value);
+        if (group == null)
         {
-            guardWordMessage = "등록된 조가 없습니다.";
+            guardWordMessage = "선택한 조를 찾을 수 없습니다.";
             return;
         }
 
-        var group = groups.FirstOrDefault(g => g.Id == selectedGuardGroupId) ?? groups[0];
-        var verse = guardVerses.FirstOrDefault(v => v.Id == selectedGuardVerseId) ?? guardVerses[0];
+        var verse = guardWordVerse;
         var word = guardWordInput.Trim();
         if (word.Length < 2)
         {
