@@ -137,7 +137,7 @@ else
                 <p class="text-muted mb-2">랜덤 문제</p>
                 <p>@activeQuiz.Question</p>
                 <div class="d-flex flex-wrap gap-2 align-items-center">
-                    <span class="fw-bold">타이머: @timerDisplay</span>
+                    <span class="fw-bold fs-5">타이머: @timerDisplay</span>
                     <button class="btn btn-outline-primary" @onclick="StartTimer" disabled="@timerRunning">시작</button>
                     <button class="btn btn-outline-danger" @onclick="StopTimer" disabled="@(!timerRunning)">정지</button>
                     <button class="btn btn-outline-secondary" @onclick="PickRandomQuiz">문제 다시 뽑기</button>
