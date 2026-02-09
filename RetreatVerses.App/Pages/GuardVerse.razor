@@ -1,7 +1,6 @@
 @page "/guard"
 @using RetreatVerses.App.Data
 @inject IDataStore DataStore
-@inject IMorphologyService MorphologyService
 
 <section class="guard-verse">
     <header class="guard-verse__header">
@@ -106,13 +105,6 @@
         if (!selectedVerse.Contains(word, StringComparison.Ordinal))
         {
             actionMessage = "말씀에 포함된 단어만 등록할 수 있습니다.";
-            return;
-        }
-
-        var nounResult = await MorphologyService.CheckNounAsync(word);
-        if (!nounResult.IsNoun)
-        {
-            actionMessage = nounResult.Message ?? "명사만 등록할 수 있습니다.";
             return;
         }
 
