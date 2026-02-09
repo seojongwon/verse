@@ -16,7 +16,16 @@ jobs:
       contents: read #This is required for actions/checkout
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout with retry
+        uses: nick-invision/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          command: |
+            git init .
+            git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+            git fetch --depth=1 origin ${{ github.ref }}
+            git checkout FETCH_HEAD
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
