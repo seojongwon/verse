@@ -21,6 +21,7 @@ namespace RetreatVerses.App.Data
         private const string PurposesFileName = "purposes.json";
         private const string DefaultMealPurpose = "식사용";
         private const string DefaultSnackPurpose = "간식용";
+        private const string DefaultPilgrimPurpose = "천로역정";
 
         private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
         {
@@ -610,13 +611,19 @@ namespace RetreatVerses.App.Data
         private async Task EnsureDefaultPurposesAsync()
         {
             var purposes = await ReadListInternalAsync<string>(PurposesFileName);
-            if (purposes.Count > 0)
+            if (purposes.Count == 0)
             {
+                purposes = new List<string> { DefaultPilgrimPurpose, DefaultMealPurpose, DefaultSnackPurpose };
+                await WriteListInternalAsync(PurposesFileName, purposes);
                 return;
             }
 
-            purposes = new List<string> { DefaultMealPurpose, DefaultSnackPurpose };
-            await WriteListInternalAsync(PurposesFileName, purposes);
+            var hasPilgrim = purposes.Any(p => string.Equals(p, DefaultPilgrimPurpose, StringComparison.OrdinalIgnoreCase));
+            if (!hasPilgrim)
+            {
+                purposes.Insert(0, DefaultPilgrimPurpose);
+                await WriteListInternalAsync(PurposesFileName, purposes);
+            }
         }
 
         private static string HashPassword(Guid groupId, string password)
