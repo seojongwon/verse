@@ -1,6 +1,7 @@
 @page "/guard"
 @using RetreatVerses.App.Data
 @inject IDataStore DataStore
+@inject IMorphologyService MorphologyService
 
 <section class="guard-verse">
     <header class="guard-verse__header">
@@ -19,6 +20,21 @@
             <p class="guard-verse__text">@selectedVerse</p>
         }
 
+        <div class="guard-verse__form">
+            <label class="guard-verse__label" for="guardWordInput">말씀 속 단어</label>
+            <div class="guard-verse__form-row">
+                <input id="guardWordInput"
+                       class="guard-verse__input"
+                       placeholder="두 글자 이상의 명사"
+                       @bind="inputWord" />
+                <button type="button" class="guard-verse__button" @onclick="RegisterAsync">등록</button>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(actionMessage))
+            {
+                <p class="guard-verse__action-message">@actionMessage</p>
+            }
+        </div>
+
         <div class="guard-verse__actions">
             <button type="button" class="guard-verse__button" @onclick="PickRandomAsync">다시 뽑기</button>
         </div>
@@ -30,6 +46,8 @@
     private readonly List<Verse> guardVerses = new List<Verse>();
     private string? selectedVerse;
     private string? message;
+    private string inputWord = string.Empty;
+    private string? actionMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -66,5 +84,40 @@
         message = null;
         var index = Random.Shared.Next(guardVerses.Count);
         selectedVerse = guardVerses[index].Text;
+        actionMessage = null;
+    }
+
+    private async Task RegisterAsync()
+    {
+        actionMessage = null;
+        if (string.IsNullOrWhiteSpace(selectedVerse))
+        {
+            actionMessage = "먼저 말씀을 불러와 주세요.";
+            return;
+        }
+
+        var word = inputWord.Trim();
+        if (word.Length < 2)
+        {
+            actionMessage = "두 글자 이상의 단어만 등록할 수 있습니다.";
+            return;
+        }
+
+        if (!selectedVerse.Contains(word, StringComparison.Ordinal))
+        {
+            actionMessage = "말씀에 포함된 단어만 등록할 수 있습니다.";
+            return;
+        }
+
+        var nounResult = await MorphologyService.CheckNounAsync(word);
+        if (!nounResult.IsNoun)
+        {
+            actionMessage = nounResult.Message ?? "명사만 등록할 수 있습니다.";
+            return;
+        }
+
+        await DataStore.AddGuardWordAsync(selectedVerse, word);
+        inputWord = string.Empty;
+        actionMessage = "단어가 등록되었습니다.";
     }
 }

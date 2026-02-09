@@ -19,6 +19,7 @@ namespace RetreatVerses.App.Data
         private const string VersesFileName = "verses.json";
         private const string RegistrationsFileName = "registrations.json";
         private const string PurposesFileName = "purposes.json";
+        private const string GuardWordsFileName = "guard-words.json";
         private const string DefaultMealPurpose = "식사용";
         private const string DefaultSnackPurpose = "간식용";
         private const string DefaultPilgrimPurpose = "천로역정";
@@ -562,6 +563,44 @@ namespace RetreatVerses.App.Data
                 target.RecitedAt = null;
                 await WriteListInternalAsync(RegistrationsFileName, registrations);
                 return new OperationResult(true, "상태를 되돌렸습니다.");
+            }
+            finally
+            {
+                _mutex.Release();
+            }
+        }
+
+        public async Task<IReadOnlyList<GuardWordEntry>> GetGuardWordsAsync()
+        {
+            await _mutex.WaitAsync();
+            try
+            {
+                var words = await ReadListInternalAsync<GuardWordEntry>(GuardWordsFileName);
+                return words;
+            }
+            finally
+            {
+                _mutex.Release();
+            }
+        }
+
+        public async Task<GuardWordEntry> AddGuardWordAsync(string verseText, string word)
+        {
+            var entry = new GuardWordEntry
+            {
+                Id = Guid.NewGuid(),
+                VerseText = verseText.Trim(),
+                Word = word.Trim(),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _mutex.WaitAsync();
+            try
+            {
+                var words = await ReadListInternalAsync<GuardWordEntry>(GuardWordsFileName);
+                words.Add(entry);
+                await WriteListInternalAsync(GuardWordsFileName, words);
+                return entry;
             }
             finally
             {

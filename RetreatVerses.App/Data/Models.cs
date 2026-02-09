@@ -24,4 +24,12 @@ namespace RetreatVerses.App.Data
         public DateTime? UsedAt { get; set; }
         public DateTime? RecitedAt { get; set; }
     }
+
+    public sealed class GuardWordEntry
+    {
+        public Guid Id { get; set; }
+        public string VerseText { get; set; } = string.Empty;
+        public string Word { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+    }
 }

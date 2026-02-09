@@ -29,6 +29,8 @@ namespace RetreatVerses.App
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddHttpContextAccessor();
+            services.Configure<MorphologyServiceOptions>(Configuration.GetSection("MorphologyService"));
+            services.AddHttpClient<IMorphologyService, KomoranService>();
             services.AddAuthentication("AdminCookie")
                 .AddCookie("AdminCookie", options =>
                 {

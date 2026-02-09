@@ -35,6 +35,37 @@
     padding: 1.5rem 1.75rem;
 }
 
+.guard-verse__form {
+    margin-top: 1.5rem;
+}
+
+.guard-verse__label {
+    display: block;
+    font-weight: 700;
+    color: var(--md-sys-color-on-surface-variant);
+    margin-bottom: 0.5rem;
+}
+
+.guard-verse__form-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+.guard-verse__input {
+    flex: 1;
+    border-radius: 12px;
+    border: 1px solid var(--md-sys-color-outline);
+    padding: 0.55rem 0.75rem;
+    font-weight: 600;
+}
+
+.guard-verse__action-message {
+    margin-top: 0.5rem;
+    font-weight: 600;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
 .guard-verse__text {
     font-size: 1.35rem;
     font-weight: 700;
@@ -81,6 +112,11 @@
 
     .guard-verse__panel {
         padding: 1.1rem 1.1rem;
+    }
+
+    .guard-verse__form-row {
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .guard-verse__text {
