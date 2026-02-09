@@ -121,12 +121,23 @@
         }
         else
         {
+            @if (IsMultiSelectMode)
+            {
+                <div class="use-verse__bulk">
+                    <button class="btn btn-sm use-verse__use-button"
+                            disabled="@(selectedVerseIds.Count == 0)"
+                            @onclick="UseSelectedAsync">
+                        선택한 말씀 사용
+                    </button>
+                    <span class="text-muted ms-2">선택: @selectedVerseIds.Count / @available.Count</span>
+                </div>
+            }
             <div class="use-verse__table table-responsive">
                 <table class="table table-borderless align-middle">
                     <thead>
                         <tr>
                             <th>말씀</th>
-                            <th class="text-end">작업</th>
+                            <th class="text-end">@(IsMultiSelectMode ? "선택" : "작업")</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -135,7 +146,17 @@
                             <tr>
                                 <td class="use-verse__text table-wrap">@item.Text</td>
                                 <td class="text-end use-verse__action">
-                                    <button class="btn btn-sm use-verse__use-button" @onclick="() => UseAsync(item)">사용</button>
+                                    @if (IsMultiSelectMode)
+                                    {
+                                        <input type="checkbox"
+                                               class="form-check-input"
+                                               checked="@selectedVerseIds.Contains(item.VerseId)"
+                                               @onchange="(e) => ToggleSelection(item.VerseId, e)" />
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm use-verse__use-button" @onclick="() => UseAsync(item)">사용</button>
+                                    }
                                 </td>
                             </tr>
                         }
@@ -159,6 +180,7 @@
     private Dictionary<Guid, Verse> verseMap = new Dictionary<Guid, Verse>();
     private string selectedType = string.Empty;
     private List<AvailableVerse> available = new List<AvailableVerse>();
+    private readonly HashSet<Guid> selectedVerseIds = new HashSet<Guid>();
     private string? actionMessage;
     private bool actionSuccess;
     private List<string> purposes = new List<string>();
@@ -166,6 +188,7 @@
     private bool isAuthorizedGroup;
     private const string PasswordCookiePrefix = "rv_group_pw_";
     private const string LastGroupCookieKey = "rv_last_group_name";
+    private const string PilgrimPurpose = "천로역정";
     private static readonly IReadOnlyList<UseOption> UseOptions = new List<UseOption>
     {
         new UseOption("meal", "식사사용", new[] { "식사용" }),
@@ -208,6 +231,7 @@
             })
             .OrderBy(v => v.RegisteredAt)
             .ToList();
+        SyncSelection();
     }
 
     private void SetType(string type)
@@ -231,6 +255,53 @@
         var result = await DataStore.UseVerseAsync(resolvedGroupId, item.VerseId);
         actionMessage = result.Message;
         actionSuccess = result.Success;
+
+        registrations = (await DataStore.GetRegistrationsForGroupAsync(resolvedGroupId)).ToList();
+        FilterAvailable();
+    }
+
+    private async Task UseSelectedAsync()
+    {
+        if (group == null || !isAuthorizedGroup || selectedVerseIds.Count == 0)
+        {
+            return;
+        }
+
+        var targets = available.Where(v => selectedVerseIds.Contains(v.VerseId)).ToList();
+        if (targets.Count == 0)
+        {
+            selectedVerseIds.Clear();
+            return;
+        }
+
+        var successCount = 0;
+        string? firstError = null;
+        foreach (var item in targets)
+        {
+            var result = await DataStore.UseVerseAsync(resolvedGroupId, item.VerseId);
+            if (result.Success)
+            {
+                successCount++;
+            }
+            else if (firstError == null)
+            {
+                firstError = result.Message;
+            }
+        }
+
+        actionSuccess = firstError == null;
+        if (firstError == null)
+        {
+            actionMessage = $"선택한 말씀 {successCount}개를 사용했습니다.";
+        }
+        else if (successCount > 0)
+        {
+            actionMessage = $"일부 말씀만 사용되었습니다. {firstError}";
+        }
+        else
+        {
+            actionMessage = firstError;
+        }
 
         registrations = (await DataStore.GetRegistrationsForGroupAsync(resolvedGroupId)).ToList();
         FilterAvailable();
@@ -365,6 +436,49 @@
             selectedType = purposes[0];
         }
         FilterAvailable();
+    }
+
+    private bool IsMultiSelectMode => IsPilgrimOnlySelection();
+
+    private bool IsPilgrimOnlySelection()
+    {
+        var allowed = GetAllowedTypes();
+        return allowed.Count == 1 && string.Equals(allowed[0], PilgrimPurpose, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void ToggleSelection(Guid verseId, ChangeEventArgs e)
+    {
+        if (!IsMultiSelectMode)
+        {
+            return;
+        }
+
+        var isChecked = e.Value is bool boolValue
+            ? boolValue
+            : string.Equals(e.Value?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+
+        if (isChecked)
+        {
+            selectedVerseIds.Add(verseId);
+        }
+        else
+        {
+            selectedVerseIds.Remove(verseId);
+        }
+
+        SyncSelection();
+    }
+
+    private void SyncSelection()
+    {
+        if (!IsMultiSelectMode)
+        {
+            selectedVerseIds.Clear();
+            return;
+        }
+
+        var availableIds = available.Select(v => v.VerseId).ToHashSet();
+        selectedVerseIds.RemoveWhere(id => !availableIds.Contains(id));
     }
 
     private async Task<string?> GetStoredPasswordAsync(Guid groupId)
