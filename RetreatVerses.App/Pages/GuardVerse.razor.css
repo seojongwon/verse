@@ -1,0 +1,89 @@
+.guard-verse {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem;
+}
+
+.guard-verse__header {
+    margin-bottom: 1.5rem;
+}
+
+.guard-verse__eyebrow {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.guard-verse__title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0.35rem 0 0.5rem;
+    color: var(--md-sys-color-on-surface);
+}
+
+.guard-verse__subtitle {
+    color: var(--md-sys-color-on-surface-variant);
+    font-weight: 600;
+}
+
+.guard-verse__panel {
+    background: var(--md-sys-color-surface);
+    border-radius: 20px;
+    box-shadow: var(--md-shadow-2);
+    padding: 1.5rem 1.75rem;
+}
+
+.guard-verse__text {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--md-sys-color-on-surface);
+    white-space: normal;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+}
+
+.guard-verse__message {
+    font-weight: 600;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.guard-verse__actions {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.guard-verse__button {
+    border-radius: 999px;
+    padding: 0.45rem 1.2rem;
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-primary);
+    border: 1px solid rgba(37, 99, 235, 0.25);
+    font-weight: 700;
+}
+
+.guard-verse__button:hover {
+    background: var(--md-sys-color-primary);
+    color: #fff;
+    border-color: var(--md-sys-color-primary);
+}
+
+@media (max-width: 640px) {
+    .guard-verse {
+        padding: 1.5rem 1rem;
+    }
+
+    .guard-verse__title {
+        font-size: 1.6rem;
+    }
+
+    .guard-verse__panel {
+        padding: 1.1rem 1.1rem;
+    }
+
+    .guard-verse__text {
+        font-size: 1.05rem;
+    }
+}

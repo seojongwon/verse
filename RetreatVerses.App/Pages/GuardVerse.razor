@@ -1,0 +1,70 @@
+@page "/guard"
+@using RetreatVerses.App.Data
+@inject IDataStore DataStore
+
+<section class="guard-verse">
+    <header class="guard-verse__header">
+        <p class="guard-verse__eyebrow">수호용 말씀</p>
+        <h3 class="guard-verse__title">랜덤 말씀</h3>
+        <p class="guard-verse__subtitle">수호용으로 등록된 말씀 중 하나가 표시됩니다.</p>
+    </header>
+
+    <div class="guard-verse__panel">
+        @if (!string.IsNullOrWhiteSpace(message))
+        {
+            <p class="guard-verse__message">@message</p>
+        }
+        else if (!string.IsNullOrWhiteSpace(selectedVerse))
+        {
+            <p class="guard-verse__text">@selectedVerse</p>
+        }
+
+        <div class="guard-verse__actions">
+            <button type="button" class="guard-verse__button" @onclick="PickRandomAsync">다시 뽑기</button>
+        </div>
+    </div>
+</section>
+
+@code {
+    private const string GuardPurpose = "수호용";
+    private readonly List<Verse> guardVerses = new List<Verse>();
+    private string? selectedVerse;
+    private string? message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadVersesAsync();
+        PickRandom();
+    }
+
+    private async Task PickRandomAsync()
+    {
+        if (guardVerses.Count == 0)
+        {
+            await LoadVersesAsync();
+        }
+
+        PickRandom();
+    }
+
+    private async Task LoadVersesAsync()
+    {
+        guardVerses.Clear();
+        var verses = await DataStore.GetVersesAsync();
+        guardVerses.AddRange(verses.Where(v => string.Equals(v.Type, GuardPurpose, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private void PickRandom()
+    {
+        if (guardVerses.Count == 0)
+        {
+            selectedVerse = null;
+            message = "수호용으로 등록된 말씀이 없습니다.";
+            return;
+        }
+
+        message = null;
+        var index = Random.Shared.Next(guardVerses.Count);
+        selectedVerse = guardVerses[index].Text;
+    }
+}
