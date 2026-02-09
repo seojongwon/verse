@@ -207,8 +207,28 @@
     height: 1.05rem;
     margin: 0;
     vertical-align: middle;
-    accent-color: var(--md-sys-color-primary);
+    appearance: none;
+    -webkit-appearance: none;
+    background: var(--md-sys-color-surface);
+    border: 2px solid var(--md-sys-color-outline);
+    border-radius: 4px;
+    display: inline-grid;
+    place-content: center;
     transform: scale(1.1);
+}
+
+.use-verse__checkbox::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    transform: scale(0);
+    transition: transform 0.1s ease-in-out;
+    box-shadow: inset 1em 1em var(--md-sys-color-primary);
+    border-radius: 2px;
+}
+
+.use-verse__checkbox:checked::before {
+    transform: scale(1);
 }
 
 .use-verse__use-button {
@@ -271,6 +291,31 @@
         padding: 0.35rem 0.4rem;
     }
 
+    .use-verse__table table,
+    .use-verse__table thead,
+    .use-verse__table tbody,
+    .use-verse__table th,
+    .use-verse__table td,
+    .use-verse__table tr {
+        display: block;
+        width: 100%;
+    }
+
+    .use-verse__table thead {
+        display: none;
+    }
+
+    .use-verse__table tbody tr {
+        border: 1px solid var(--md-sys-color-outline);
+        border-radius: 12px;
+        padding: 0.6rem 0.7rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .use-verse__table tbody tr:last-child {
+        margin-bottom: 0;
+    }
+
     .use-verse__table thead th {
         font-size: 0.7rem;
     }
@@ -285,7 +330,9 @@
     }
 
     .use-verse__action {
-        min-width: 3rem;
+        min-width: 0;
+        justify-content: flex-start;
+        margin-top: 0.45rem;
     }
 
     .use-verse__checkbox {
