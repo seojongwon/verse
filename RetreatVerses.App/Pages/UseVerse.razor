@@ -149,7 +149,7 @@
                                     @if (IsMultiSelectMode)
                                     {
                                         <input type="checkbox"
-                                               class="form-check-input"
+                                               class="form-check-input use-verse__checkbox"
                                                checked="@selectedVerseIds.Contains(item.VerseId)"
                                                @onchange="(e) => ToggleSelection(item.VerseId, e)" />
                                     }

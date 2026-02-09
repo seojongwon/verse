@@ -189,10 +189,21 @@
 .use-verse__text {
     font-weight: 600;
     color: var(--md-sys-color-on-surface);
+    white-space: normal;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
 }
 
 .use-verse__action {
     white-space: nowrap;
+}
+
+.use-verse__checkbox {
+    width: 1.05rem;
+    height: 1.05rem;
+    margin: 0;
+    vertical-align: middle;
+    accent-color: var(--md-sys-color-primary);
 }
 
 .use-verse__use-button {
@@ -253,6 +264,11 @@
 
     .use-verse__table {
         padding: 0.6rem;
+    }
+
+    .use-verse__checkbox {
+        width: 1.25rem;
+        height: 1.25rem;
     }
 
     .use-verse__search-row {
