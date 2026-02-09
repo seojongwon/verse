@@ -98,6 +98,12 @@ else
                     <p class="text-muted mb-2">랜덤 말씀</p>
                     <p>@guardWordVerse.Text</p>
                     <div class="group-add-row">
+                        <select class="form-select group-add-input" @bind="selectedGuardUsePurpose">
+                            @foreach (var purpose in purposes)
+                            {
+                                <option value="@purpose">@purpose</option>
+                            }
+                        </select>
                         <input class="form-control group-add-input" @bind="guardWordInput" placeholder="두 글자 이상의 단어" />
                         <button class="btn btn-outline-secondary" @onclick="RefreshGuardVerse">말씀 다시 뽑기</button>
                         <button class="btn btn-outline-primary" @onclick="AddGuardWordAsync">등록</button>
@@ -127,6 +133,8 @@ else
     private Verse? guardWordVerse;
     private string guardWordInput = string.Empty;
     private string? guardWordMessage;
+    private List<string> purposes = new List<string>();
+    private string selectedGuardUsePurpose = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -159,6 +167,11 @@ else
         groups = (await DataStore.GetGroupsAsync()).ToList();
         var verses = await DataStore.GetVersesAsync();
         guardVerses = verses.Where(v => string.Equals(v.Type, GuardPurpose, StringComparison.OrdinalIgnoreCase)).ToList();
+        purposes = (await DataStore.GetVersePurposesAsync()).ToList();
+        if (purposes.Count > 0 && string.IsNullOrWhiteSpace(selectedGuardUsePurpose))
+        {
+            selectedGuardUsePurpose = purposes[0];
+        }
         SyncGuardWordPanel();
         SyncSelection();
     }
@@ -276,6 +289,11 @@ else
         {
             guardWordVerse = PickRandomGuardVerse();
         }
+
+        if (purposes.Count > 0 && (string.IsNullOrWhiteSpace(selectedGuardUsePurpose) || !purposes.Contains(selectedGuardUsePurpose)))
+        {
+            selectedGuardUsePurpose = purposes[0];
+        }
     }
 
     private async Task AddGuardWordAsync()
@@ -290,6 +308,12 @@ else
         if (guardVerses.Count == 0 || guardWordVerse == null)
         {
             guardWordMessage = "수호용으로 등록된 말씀이 없습니다.";
+            return;
+        }
+
+        if (purposes.Count == 0 || string.IsNullOrWhiteSpace(selectedGuardUsePurpose))
+        {
+            guardWordMessage = "먼저 사용 용도를 등록해 주세요.";
             return;
         }
 
@@ -314,7 +338,7 @@ else
             return;
         }
 
-        await DataStore.AddGuardWordAsync(group.Id, verse.Text, word);
+        await DataStore.AddGuardWordAsync(group.Id, selectedGuardUsePurpose, verse.Text, word);
         guardWordInput = string.Empty;
         guardWordMessage = "단어가 등록되었습니다.";
     }

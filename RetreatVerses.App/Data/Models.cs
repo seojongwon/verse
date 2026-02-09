@@ -29,6 +29,7 @@ namespace RetreatVerses.App.Data
     {
         public Guid Id { get; set; }
         public Guid GroupId { get; set; }
+        public string Purpose { get; set; } = string.Empty;
         public string VerseText { get; set; } = string.Empty;
         public string Word { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }

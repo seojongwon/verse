@@ -59,12 +59,16 @@
                 }
                 else
                 {
-                    <div class="user-dashboard__word">
-                        <strong>@latestGuardWord.Word</strong>
-                        <p class="user-dashboard__verse">@latestGuardWord.VerseText</p>
-                    </div>
-                }
-            </div>
+                <div class="user-dashboard__word">
+                    <strong>@latestGuardWord.Word</strong>
+                    <p class="user-dashboard__verse">@latestGuardWord.VerseText</p>
+                    @if (!string.IsNullOrWhiteSpace(latestGuardWord.Purpose))
+                    {
+                        <p class="user-dashboard__verse">사용 용도: @latestGuardWord.Purpose</p>
+                    }
+                </div>
+            }
+        </div>
         }
     </div>
 </section>
