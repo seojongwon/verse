@@ -1,0 +1,89 @@
+@page "/admin/quiz"
+@attribute [Authorize]
+@using RetreatVerses.App.Data
+@inject IDataStore DataStore
+
+<h3>성경 퀴즈 관리</h3>
+
+<div class="mb-3">
+    <label class="form-label">새 퀴즈</label>
+    <div class="group-add-row">
+        <input class="form-control group-add-input" @bind="newQuestion" placeholder="퀴즈 문제" />
+        <input class="form-control group-add-input" @bind="newAnswer" placeholder="정답" />
+        <button class="btn btn-primary" @onclick="AddQuizAsync">추가</button>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(message))
+    {
+        <small class="text-muted">@message</small>
+    }
+</div>
+
+@if (quizzes.Count == 0)
+{
+    <p class="text-muted">등록된 퀴즈가 없습니다.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th class="text-start align-middle">문제</th>
+                    <th class="text-start align-middle">정답</th>
+                    <th class="text-start align-middle">작업</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var quiz in quizzes)
+                {
+                    <tr>
+                        <td>@quiz.Question</td>
+                        <td>@quiz.Answer</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteQuizAsync(quiz)">삭제</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<QuizEntry> quizzes = new List<QuizEntry>();
+    private string newQuestion = string.Empty;
+    private string newAnswer = string.Empty;
+    private string? message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        quizzes = (await DataStore.GetQuizzesAsync()).ToList();
+    }
+
+    private async Task AddQuizAsync()
+    {
+        message = null;
+        if (string.IsNullOrWhiteSpace(newQuestion) || string.IsNullOrWhiteSpace(newAnswer))
+        {
+            message = "문제와 정답을 입력해 주세요.";
+            return;
+        }
+
+        await DataStore.AddQuizAsync(newQuestion, newAnswer);
+        newQuestion = string.Empty;
+        newAnswer = string.Empty;
+        message = "퀴즈가 등록되었습니다.";
+        await ReloadAsync();
+    }
+
+    private async Task DeleteQuizAsync(QuizEntry quiz)
+    {
+        await DataStore.DeleteQuizAsync(quiz.Id);
+        await ReloadAsync();
+    }
+}

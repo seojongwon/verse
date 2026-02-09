@@ -20,6 +20,7 @@ namespace RetreatVerses.App.Data
         private const string RegistrationsFileName = "registrations.json";
         private const string PurposesFileName = "purposes.json";
         private const string GuardWordsFileName = "guard-words.json";
+        private const string QuizzesFileName = "quizzes.json";
         private const string DefaultMealPurpose = "식사용";
         private const string DefaultSnackPurpose = "간식용";
         private const string DefaultPilgrimPurpose = "천로역정";
@@ -603,6 +604,63 @@ namespace RetreatVerses.App.Data
                 words.Add(entry);
                 await WriteListInternalAsync(GuardWordsFileName, words);
                 return entry;
+            }
+            finally
+            {
+                _mutex.Release();
+            }
+        }
+
+        public async Task<IReadOnlyList<QuizEntry>> GetQuizzesAsync()
+        {
+            await _mutex.WaitAsync();
+            try
+            {
+                var quizzes = await ReadListInternalAsync<QuizEntry>(QuizzesFileName);
+                return quizzes;
+            }
+            finally
+            {
+                _mutex.Release();
+            }
+        }
+
+        public async Task<QuizEntry> AddQuizAsync(string question, string answer)
+        {
+            var entry = new QuizEntry
+            {
+                Id = Guid.NewGuid(),
+                Question = question.Trim(),
+                Answer = answer.Trim(),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _mutex.WaitAsync();
+            try
+            {
+                var quizzes = await ReadListInternalAsync<QuizEntry>(QuizzesFileName);
+                quizzes.Add(entry);
+                await WriteListInternalAsync(QuizzesFileName, quizzes);
+                return entry;
+            }
+            finally
+            {
+                _mutex.Release();
+            }
+        }
+
+        public async Task<bool> DeleteQuizAsync(Guid id)
+        {
+            await _mutex.WaitAsync();
+            try
+            {
+                var quizzes = await ReadListInternalAsync<QuizEntry>(QuizzesFileName);
+                var removed = quizzes.RemoveAll(q => q.Id == id) > 0;
+                if (removed)
+                {
+                    await WriteListInternalAsync(QuizzesFileName, quizzes);
+                }
+                return removed;
             }
             finally
             {

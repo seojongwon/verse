@@ -34,4 +34,12 @@ namespace RetreatVerses.App.Data
         public string Word { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }
+
+    public sealed class QuizEntry
+    {
+        public Guid Id { get; set; }
+        public string Question { get; set; } = string.Empty;
+        public string Answer { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+    }
 }

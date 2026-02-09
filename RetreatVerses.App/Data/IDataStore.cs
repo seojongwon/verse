@@ -33,5 +33,9 @@ namespace RetreatVerses.App.Data
 
         Task<IReadOnlyList<GuardWordEntry>> GetGuardWordsAsync();
         Task<GuardWordEntry> AddGuardWordAsync(Guid groupId, string purpose, string verseText, string word);
+
+        Task<IReadOnlyList<QuizEntry>> GetQuizzesAsync();
+        Task<QuizEntry> AddQuizAsync(string question, string answer);
+        Task<bool> DeleteQuizAsync(Guid id);
     }
 }

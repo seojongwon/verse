@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @using RetreatVerses.App.Data
 @inject IDataStore DataStore
+@implements IDisposable
 
 <h3>조 관리</h3>
 
@@ -118,6 +119,34 @@ else
     }
 }
 
+@if (guardWordGroupId != null)
+{
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">성경 퀴즈</h5>
+            @if (quizzes.Count == 0)
+            {
+                <p class="text-muted">등록된 퀴즈가 없습니다.</p>
+            }
+            else if (activeQuiz == null)
+            {
+                <p class="text-muted">문제를 불러오지 못했습니다.</p>
+            }
+            else
+            {
+                <p class="text-muted mb-2">랜덤 문제</p>
+                <p>@activeQuiz.Question</p>
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <span class="fw-bold">타이머: @timerDisplay</span>
+                    <button class="btn btn-outline-primary" @onclick="StartTimer" disabled="@timerRunning">시작</button>
+                    <button class="btn btn-outline-danger" @onclick="StopTimer" disabled="@(!timerRunning)">정지</button>
+                    <button class="btn btn-outline-secondary" @onclick="PickRandomQuiz">문제 다시 뽑기</button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
 @code {
     private List<Group> groups = new List<Group>();
     private string newGroupName = string.Empty;
@@ -128,6 +157,12 @@ else
     private bool showGroupId;
     private const string GuardPurpose = "수호용";
     private List<Verse> guardVerses = new List<Verse>();
+    private List<QuizEntry> quizzes = new List<QuizEntry>();
+    private QuizEntry? activeQuiz;
+    private System.Timers.Timer? quizTimer;
+    private bool quizTimerInitialized;
+    private bool timerRunning;
+    private int elapsedSeconds;
     private Guid? guardWordGroupId;
     private string? guardWordGroupName;
     private Verse? guardWordVerse;
@@ -167,6 +202,7 @@ else
         groups = (await DataStore.GetGroupsAsync()).ToList();
         var verses = await DataStore.GetVersesAsync();
         guardVerses = verses.Where(v => string.Equals(v.Type, GuardPurpose, StringComparison.OrdinalIgnoreCase)).ToList();
+        quizzes = (await DataStore.GetQuizzesAsync()).ToList();
         purposes = (await DataStore.GetVersePurposesAsync()).ToList();
         if (purposes.Count > 0 && string.IsNullOrWhiteSpace(selectedGuardUsePurpose))
         {
@@ -243,6 +279,8 @@ else
         guardWordInput = string.Empty;
         guardWordMessage = null;
         guardWordVerse = PickRandomGuardVerse();
+        activeQuiz = PickRandomQuizInternal();
+        ResetTimer();
     }
 
     private void RefreshGuardVerse()
@@ -294,6 +332,16 @@ else
         {
             selectedGuardUsePurpose = purposes[0];
         }
+
+        if (quizzes.Count == 0)
+        {
+            activeQuiz = null;
+        }
+        else if (activeQuiz == null || !quizzes.Any(q => q.Id == activeQuiz.Id))
+        {
+            activeQuiz = PickRandomQuizInternal();
+            ResetTimer();
+        }
     }
 
     private async Task AddGuardWordAsync()
@@ -341,6 +389,70 @@ else
         await DataStore.AddGuardWordAsync(group.Id, selectedGuardUsePurpose, verse.Text, word);
         guardWordInput = string.Empty;
         guardWordMessage = "단어가 등록되었습니다.";
+    }
+
+    private string timerDisplay => TimeSpan.FromSeconds(elapsedSeconds).ToString(@"mm\:ss");
+
+    private void StartTimer()
+    {
+        if (timerRunning)
+        {
+            return;
+        }
+
+        timerRunning = true;
+        if (!quizTimerInitialized)
+        {
+            quizTimer = new System.Timers.Timer(1000);
+            quizTimer.AutoReset = true;
+            quizTimer.Elapsed += (_, _) =>
+            {
+                elapsedSeconds++;
+                _ = InvokeAsync(StateHasChanged);
+            };
+            quizTimerInitialized = true;
+        }
+        quizTimer.Start();
+    }
+
+    private void StopTimer()
+    {
+        if (!timerRunning)
+        {
+            return;
+        }
+
+        timerRunning = false;
+        quizTimer?.Stop();
+    }
+
+    private void ResetTimer()
+    {
+        StopTimer();
+        elapsedSeconds = 0;
+    }
+
+    private void PickRandomQuiz()
+    {
+        activeQuiz = PickRandomQuizInternal();
+        ResetTimer();
+    }
+
+    private QuizEntry? PickRandomQuizInternal()
+    {
+        if (quizzes.Count == 0)
+        {
+            return null;
+        }
+
+        var index = Random.Shared.Next(quizzes.Count);
+        return quizzes[index];
+    }
+
+    public void Dispose()
+    {
+        quizTimer?.Stop();
+        quizTimer?.Dispose();
     }
 
     private bool IsAllSelected
