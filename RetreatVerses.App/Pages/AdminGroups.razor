@@ -15,6 +15,31 @@
     <small class="text-muted">조별 비밀번호는 말씀 사용 시 필요합니다.</small>
 </div>
 
+<div class="mb-4">
+    <label class="form-label">수호용 단어 등록</label>
+    @if (guardVerses.Count == 0)
+    {
+        <p class="text-muted">수호용으로 등록된 말씀이 없습니다.</p>
+    }
+    else
+    {
+        <div class="group-add-row">
+            <select class="form-select group-add-input" @bind="selectedGuardVerseId">
+                @foreach (var verse in guardVerses)
+                {
+                    <option value="@verse.Id">@verse.Text</option>
+                }
+            </select>
+            <input class="form-control group-add-input" @bind="guardWordInput" placeholder="두 글자 이상의 단어" />
+            <button class="btn btn-outline-primary" @onclick="AddGuardWordAsync">등록</button>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(guardWordMessage))
+        {
+            <small class="text-muted">@guardWordMessage</small>
+        }
+    }
+</div>
+
 <div class="d-flex flex-wrap gap-2 mb-3">
     <button class="btn btn-outline-danger" disabled="@(selectedGroupIds.Count == 0)" @onclick="DeleteSelectedAsync">선택 삭제</button>
     <button class="btn btn-outline-danger" disabled="@(groups.Count == 0)" @onclick="DeleteAllAsync">전체 삭제</button>
@@ -92,6 +117,11 @@ else
     private bool isAllSelected;
     private readonly Dictionary<Guid, string> passwordInputs = new Dictionary<Guid, string>();
     private bool showGroupId;
+    private const string GuardPurpose = "수호용";
+    private List<Verse> guardVerses = new List<Verse>();
+    private Guid selectedGuardVerseId;
+    private string guardWordInput = string.Empty;
+    private string? guardWordMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -122,6 +152,12 @@ else
     private async Task ReloadAsync()
     {
         groups = (await DataStore.GetGroupsAsync()).ToList();
+        var verses = await DataStore.GetVersesAsync();
+        guardVerses = verses.Where(v => string.Equals(v.Type, GuardPurpose, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (guardVerses.Count > 0 && !guardVerses.Any(v => v.Id == selectedGuardVerseId))
+        {
+            selectedGuardVerseId = guardVerses[0].Id;
+        }
         SyncSelection();
     }
 
@@ -183,6 +219,34 @@ else
     private void SetPasswordInput(Guid id, string? value)
     {
         passwordInputs[id] = value ?? string.Empty;
+    }
+
+    private async Task AddGuardWordAsync()
+    {
+        guardWordMessage = null;
+        if (guardVerses.Count == 0)
+        {
+            guardWordMessage = "수호용으로 등록된 말씀이 없습니다.";
+            return;
+        }
+
+        var verse = guardVerses.FirstOrDefault(v => v.Id == selectedGuardVerseId) ?? guardVerses[0];
+        var word = guardWordInput.Trim();
+        if (word.Length < 2)
+        {
+            guardWordMessage = "두 글자 이상의 단어만 등록할 수 있습니다.";
+            return;
+        }
+
+        if (!verse.Text.Contains(word, StringComparison.Ordinal))
+        {
+            guardWordMessage = "말씀에 포함된 단어만 등록할 수 있습니다.";
+            return;
+        }
+
+        await DataStore.AddGuardWordAsync(verse.Text, word);
+        guardWordInput = string.Empty;
+        guardWordMessage = "단어가 등록되었습니다.";
     }
 
     private bool IsAllSelected
