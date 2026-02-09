@@ -9,45 +9,63 @@
     </header>
 
     <div class="user-dashboard__panel">
-        <div class="user-dashboard__metric">
-            <span class="user-dashboard__label">등록된 말씀</span>
-            <strong class="user-dashboard__value">@totalVerses</strong>
-        </div>
+        @if (!isAuthorized)
+        {
+            <div class="user-dashboard__auth">
+                <label class="user-dashboard__label" for="groupNameInput">조 이름</label>
+                <input id="groupNameInput" class="form-control" placeholder="예: 1조" @bind="groupNameInput" />
+                <label class="user-dashboard__label mt-3" for="groupPasswordInput">조 비밀번호</label>
+                <input id="groupPasswordInput" class="form-control" type="password" autocomplete="current-password"
+                       placeholder="비밀번호 입력" @bind="groupPasswordInput" />
+                <button type="button" class="btn btn-primary mt-3" @onclick="FindGroupByNameAsync">입장</button>
+                @if (!string.IsNullOrWhiteSpace(searchMessage))
+                {
+                    <p class="text-muted mt-2">@searchMessage</p>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="user-dashboard__metric">
+                <span class="user-dashboard__label">등록된 말씀</span>
+                <strong class="user-dashboard__value">@totalVerses</strong>
+            </div>
 
-        <div class="user-dashboard__section">
-            <p class="user-dashboard__section-title">용도별 말씀 수</p>
-            @if (purposeCounts.Count == 0)
-            {
-                <p class="text-muted">등록된 말씀이 없습니다.</p>
-            }
-            else
-            {
-                <ul class="user-dashboard__list">
-                    @foreach (var item in purposeCounts)
-                    {
-                        <li class="user-dashboard__list-item">
-                            <span>@item.Purpose</span>
-                            <strong>@item.Count</strong>
-                        </li>
-                    }
-                </ul>
-            }
-        </div>
+            <div class="user-dashboard__section">
+                <p class="user-dashboard__section-title">용도별 말씀 수</p>
+                @if (purposeCounts.Count == 0)
+                {
+                    <p class="text-muted">등록된 말씀이 없습니다.</p>
+                }
+                else
+                {
+                    <ul class="user-dashboard__list">
+                        @foreach (var item in purposeCounts)
+                        {
+                            <li class="user-dashboard__list-item">
+                                <span>@item.Purpose</span>
+                                <strong>@item.Count</strong>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
 
-        <div class="user-dashboard__section">
-            <p class="user-dashboard__section-title">최근 선택 단어</p>
-            @if (latestGuardWord == null)
-            {
-                <p class="text-muted">등록된 단어가 없습니다.</p>
-            }
-            else
-            {
-                <div class="user-dashboard__word">
-                    <strong>@latestGuardWord.Word</strong>
-                    <p class="user-dashboard__verse">@latestGuardWord.VerseText</p>
-                </div>
-            }
-        </div>
+            <div class="user-dashboard__section">
+                <p class="user-dashboard__section-title">최근 선택 단어</p>
+                @if (latestGuardWord == null)
+                {
+                    <p class="text-muted">등록된 단어가 없습니다.</p>
+                }
+                else
+                {
+                    <div class="user-dashboard__word">
+                        <strong>@latestGuardWord.Word</strong>
+                        <p class="user-dashboard__verse">@latestGuardWord.VerseText</p>
+                    </div>
+                }
+            </div>
+        }
     </div>
 </section>
 
@@ -55,8 +73,50 @@
     private int totalVerses;
     private List<PurposeCount> purposeCounts = new List<PurposeCount>();
     private GuardWordEntry? latestGuardWord;
+    private string groupNameInput = string.Empty;
+    private string groupPasswordInput = string.Empty;
+    private string? searchMessage;
+    private bool isAuthorized;
+    private Group? group;
 
-    protected override async Task OnInitializedAsync()
+    private async Task FindGroupByNameAsync()
+    {
+        searchMessage = null;
+        isAuthorized = false;
+
+        if (string.IsNullOrWhiteSpace(groupNameInput))
+        {
+            searchMessage = "조 이름을 입력해 주세요.";
+            return;
+        }
+
+        var groups = await DataStore.GetGroupsAsync();
+        var normalized = groupNameInput.Trim();
+        group = groups.FirstOrDefault(g => string.Equals(g.Name, normalized, StringComparison.OrdinalIgnoreCase));
+
+        if (group == null)
+        {
+            searchMessage = "해당 조를 찾을 수 없습니다.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(groupPasswordInput))
+        {
+            searchMessage = "조 비밀번호를 입력해 주세요.";
+            return;
+        }
+
+        if (!await DataStore.VerifyGroupPasswordAsync(group.Id, groupPasswordInput))
+        {
+            searchMessage = "비밀번호가 일치하지 않습니다.";
+            return;
+        }
+
+        isAuthorized = true;
+        await LoadDashboardAsync();
+    }
+
+    private async Task LoadDashboardAsync()
     {
         var verses = await DataStore.GetVersesAsync();
         totalVerses = verses.Count;
