@@ -167,6 +167,9 @@ else
                             <small class="text-muted">@quizRewardMessage</small>
                         }
                     </div>
+                    <small class="text-muted d-block mt-2">
+                        5초 이내 3개, 15초 이내 2개, 그 이상 1개
+                    </small>
                 </div>
             }
         </div>
@@ -492,11 +495,33 @@ else
         }
 
         var responseSeconds = quizResponseSeconds > 0 ? quizResponseSeconds : elapsedSeconds;
-        await DataStore.AddQuizRewardAsync(guardWordGroupId.Value, activeQuiz.Id, responseSeconds, selectedRewardType);
+        if (responseSeconds <= 0)
+        {
+            quizRewardMessage = "응답 시간을 입력하거나 타이머를 사용해 주세요.";
+            return;
+        }
+
+        var starCount = CalculateStarCount(responseSeconds);
+        await DataStore.AddQuizRewardAsync(guardWordGroupId.Value, activeQuiz.Id, responseSeconds, selectedRewardType, starCount);
 
         quizRewardMessage = selectedRewardType == RewardTypeGuard
-            ? "수호의 별이 저장되었습니다."
-            : "공격의 별 지급을 기록했습니다.";
+            ? $"수호의 별 {starCount}개를 저장했습니다."
+            : $"공격의 별 {starCount}개 지급을 기록했습니다.";
+    }
+
+    private static int CalculateStarCount(int responseSeconds)
+    {
+        if (responseSeconds <= 5)
+        {
+            return 3;
+        }
+
+        if (responseSeconds <= 15)
+        {
+            return 2;
+        }
+
+        return 1;
     }
 
     private QuizEntry? PickRandomQuizInternal()

@@ -59,16 +59,24 @@
                 }
                 else
                 {
-                <div class="user-dashboard__word">
-                    <strong>@latestGuardWord.Word</strong>
-                    <p class="user-dashboard__verse">@latestGuardWord.VerseText</p>
-                    @if (!string.IsNullOrWhiteSpace(latestGuardWord.Purpose))
-                    {
-                        <p class="user-dashboard__verse">사용 용도: @latestGuardWord.Purpose</p>
-                    }
+                    <div class="user-dashboard__word">
+                        <strong>@latestGuardWord.Word</strong>
+                        <p class="user-dashboard__verse">@latestGuardWord.VerseText</p>
+                        @if (!string.IsNullOrWhiteSpace(latestGuardWord.Purpose))
+                        {
+                            <p class="user-dashboard__verse">사용 용도: @latestGuardWord.Purpose</p>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="user-dashboard__section">
+                <p class="user-dashboard__section-title">수호의 별 누적</p>
+                <div class="user-dashboard__metric">
+                    <span class="user-dashboard__label">누적 수호의 별</span>
+                    <strong class="user-dashboard__value">@guardStarTotal</strong>
                 </div>
-            }
-        </div>
+            </div>
         }
     </div>
 </section>
@@ -77,6 +85,7 @@
     private int totalVerses;
     private List<PurposeCount> purposeCounts = new List<PurposeCount>();
     private GuardWordEntry? latestGuardWord;
+    private int guardStarTotal;
     private string groupNameInput = string.Empty;
     private string groupPasswordInput = string.Empty;
     private string? searchMessage;
@@ -146,6 +155,11 @@
             .Where(w => w.GroupId == group.Id)
             .OrderByDescending(w => w.CreatedAt)
             .FirstOrDefault();
+
+        var rewards = await DataStore.GetQuizRewardsAsync();
+        guardStarTotal = rewards
+            .Where(r => r.GroupId == group.Id && string.Equals(r.RewardType, "guard", StringComparison.OrdinalIgnoreCase))
+            .Sum(r => r.StarCount);
     }
 
     private sealed class PurposeCount

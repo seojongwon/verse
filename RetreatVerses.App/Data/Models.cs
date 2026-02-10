@@ -50,6 +50,7 @@ namespace RetreatVerses.App.Data
         public Guid QuizId { get; set; }
         public int ResponseSeconds { get; set; }
         public string RewardType { get; set; } = string.Empty;
+        public int StarCount { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

@@ -683,7 +683,7 @@ namespace RetreatVerses.App.Data
             }
         }
 
-        public async Task<QuizRewardEntry> AddQuizRewardAsync(Guid groupId, Guid quizId, int responseSeconds, string rewardType)
+        public async Task<QuizRewardEntry> AddQuizRewardAsync(Guid groupId, Guid quizId, int responseSeconds, string rewardType, int starCount)
         {
             if (groupId == Guid.Empty)
             {
@@ -707,6 +707,7 @@ namespace RetreatVerses.App.Data
                 QuizId = quizId,
                 ResponseSeconds = Math.Max(0, responseSeconds),
                 RewardType = rewardType.Trim(),
+                StarCount = Math.Max(1, starCount),
                 CreatedAt = DateTime.UtcNow
             };
 

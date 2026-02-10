@@ -134,6 +134,29 @@ else
             </div>
         </div>
     </div>
+
+    <div class="mt-4">
+        <h5 class="mb-3">수호의 별 누적</h5>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>조 이름</th>
+                        <th>수호의 별</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in guardStarStats)
+                    {
+                        <tr>
+                            <td>@item.GroupName</td>
+                            <td>@item.Total</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 }
 
 @code {
@@ -141,11 +164,13 @@ else
     private List<GroupStat> topByRegistrations = new List<GroupStat>();
     private List<GroupStat> topByUsed = new List<GroupStat>();
     private List<GroupStat> topByRecited = new List<GroupStat>();
+    private List<GroupStat> guardStarStats = new List<GroupStat>();
 
     protected override async Task OnInitializedAsync()
     {
         var groups = await DataStore.GetGroupsAsync();
         var registrations = await DataStore.GetRegistrationsAsync();
+        var rewards = await DataStore.GetQuizRewardsAsync();
 
         stats = groups
             .Select(group =>
@@ -164,6 +189,22 @@ else
                 };
             })
             .OrderByDescending(s => s.Total)
+            .ToList();
+
+        guardStarStats = groups
+            .Select(group =>
+            {
+                var total = rewards
+                    .Where(r => r.GroupId == group.Id && string.Equals(r.RewardType, "guard", StringComparison.OrdinalIgnoreCase))
+                    .Sum(r => r.StarCount);
+                return new GroupStat
+                {
+                    GroupName = group.Name,
+                    Total = total
+                };
+            })
+            .OrderByDescending(s => s.Total)
+            .ThenBy(s => s.GroupName)
             .ToList();
 
         topByRegistrations = stats

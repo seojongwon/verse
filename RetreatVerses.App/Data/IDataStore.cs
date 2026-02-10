@@ -39,6 +39,6 @@ namespace RetreatVerses.App.Data
         Task<bool> DeleteQuizAsync(Guid id);
 
         Task<IReadOnlyList<QuizRewardEntry>> GetQuizRewardsAsync();
-        Task<QuizRewardEntry> AddQuizRewardAsync(Guid groupId, Guid quizId, int responseSeconds, string rewardType);
+        Task<QuizRewardEntry> AddQuizRewardAsync(Guid groupId, Guid quizId, int responseSeconds, string rewardType, int starCount);
     }
 }
