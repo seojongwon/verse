@@ -289,6 +289,7 @@
 
     .use-verse__table {
         padding: 0.35rem 0.4rem;
+        overflow-x: visible;
     }
 
     .use-verse__table table,
@@ -322,6 +323,18 @@
 
     .use-verse__text {
         font-size: 0.95rem;
+        white-space: normal;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    .use-verse__table table {
+        min-width: 0;
+    }
+
+    .use-verse__table td,
+    .use-verse__table th {
+        white-space: normal;
     }
 
     .use-verse__use-button {
