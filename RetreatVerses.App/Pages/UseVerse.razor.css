@@ -192,7 +192,6 @@
     white-space: normal;
     word-break: keep-all;
     overflow-wrap: anywhere;
-    padding-left: 1.2rem;
 }
 
 .use-verse__action {
@@ -311,7 +310,7 @@
     .use-verse__table tbody tr {
         border: 1px solid var(--md-sys-color-outline);
         border-radius: 12px;
-        padding: 0.6rem 3rem 0.6rem 0.7rem;
+        padding: 0.6rem 0.7rem;
         margin-bottom: 0.6rem;
         position: relative;
     }
@@ -347,12 +346,35 @@
 
     .use-verse__action {
         min-width: 0;
-        justify-content: flex-end;
+        justify-content: flex-start;
         align-items: flex-start;
         margin-top: 0;
+    }
+
+    .use-verse__table:not(.is-multiselect) tbody tr {
+        padding-right: 3rem;
+    }
+
+    .use-verse__table:not(.is-multiselect) .use-verse__action {
+        justify-content: flex-end;
         position: absolute;
         top: 0.6rem;
         right: 0.7rem;
+    }
+
+    .use-verse__table.is-multiselect tbody tr {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        column-gap: 0.8rem;
+        align-items: start;
+    }
+
+    .use-verse__table.is-multiselect .use-verse__text {
+        padding-left: 0;
+    }
+
+    .use-verse__table.is-multiselect .use-verse__action {
+        position: static;
     }
 
     .use-verse__checkbox {

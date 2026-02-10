@@ -140,7 +140,7 @@
                     <span class="text-muted ms-2">선택: @selectedVerseIds.Count / @available.Count</span>
                 </div>
             }
-            <div class="use-verse__table table-responsive">
+            <div class="use-verse__table table-responsive @(IsMultiSelectMode ? "is-multiselect" : null)">
                 <table class="table table-borderless align-middle">
                     <thead>
                         <tr>
