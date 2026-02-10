@@ -86,7 +86,7 @@
     private string? searchMessage;
     private bool isAuthorized;
     private Group? group;
-    private string dashboardTitle => group == null ? "말씀 현황" : $"{group.Name} 말씀 현황";
+    private string dashboardTitle => group == null ? "말씀 현황" : $"{group.Name}조 말씀 현황";
 
     private async Task FindGroupByNameAsync()
     {
