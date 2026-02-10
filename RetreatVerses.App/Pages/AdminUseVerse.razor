@@ -92,6 +92,7 @@ else
 
 
 @code {
+    private const string GuardPurpose = "수호용";
     [Parameter] public string? UsePurpose { get; set; }
 
     private List<Group> groups = new List<Group>();
@@ -108,7 +109,9 @@ else
     protected override async Task OnInitializedAsync()
     {
         groups = (await DataStore.GetGroupsAsync()).ToList();
-        purposes = (await DataStore.GetVersePurposesAsync()).ToList();
+        purposes = (await DataStore.GetVersePurposesAsync())
+            .Where(p => !string.Equals(p, GuardPurpose, StringComparison.OrdinalIgnoreCase))
+            .ToList();
         ResolveUsePurpose();
     }
 
