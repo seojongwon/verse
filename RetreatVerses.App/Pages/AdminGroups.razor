@@ -41,6 +41,8 @@ else
                     </th>
                     <th class="text-start align-middle">조 이름</th>
                     <th class="text-start align-middle">비밀번호</th>
+                    <th class="text-start align-middle">수호의 별</th>
+                    <th class="text-start align-middle">공격의 별</th>
                     <th class="text-start align-middle">작업</th>
                     <th class="text-start align-middle">조 링크</th>
                     @if (showGroupId)
@@ -67,9 +69,34 @@ else
                                    @bind-value:event="oninput" />
                         </td>
                         <td>
+                            <div class="d-flex flex-column gap-1">
+                                <small class="text-muted">현재: @GetGuardStarTotal(group.Id)</small>
+                                <input class="form-control form-control-sm"
+                                       type="number" min="0"
+                                       @bind-value:get="GetGuardStarInput(group.Id)"
+                                       @bind-value:set="value => SetGuardStarInput(group.Id, value)"
+                                       @bind-value:event="oninput" />
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column gap-1">
+                                <small class="text-muted">현재: @GetAttackStarTotal(group.Id)</small>
+                                <input class="form-control form-control-sm"
+                                       type="number" min="0"
+                                       @bind-value:get="GetAttackStarInput(group.Id)"
+                                       @bind-value:set="value => SetAttackStarInput(group.Id, value)"
+                                       @bind-value:event="oninput" />
+                            </div>
+                        </td>
+                        <td>
                             <button class="btn btn-sm btn-outline-primary" @onclick="() => SaveGroupAsync(group)">저장</button>
                             <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteGroupAsync(group)">삭제</button>
                             <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="() => OpenGuardWordPanel(group)">수호단어 등록</button>
+                            <button class="btn btn-sm btn-outline-success ms-2" @onclick="() => SaveStarTotalsAsync(group)">별 수정</button>
+                            @if (starMessages.TryGetValue(group.Id, out var starMessage) && !string.IsNullOrWhiteSpace(starMessage))
+                            {
+                                <small class="text-muted ms-2">@starMessage</small>
+                            }
                         </td>
                         <td>
                             <a class="btn btn-sm btn-outline-secondary me-2" href="/group/@group.Id/verses">목록</a>
@@ -189,6 +216,11 @@ else
     private HashSet<Guid> selectedGroupIds = new HashSet<Guid>();
     private bool isAllSelected;
     private readonly Dictionary<Guid, string> passwordInputs = new Dictionary<Guid, string>();
+    private readonly Dictionary<Guid, string> guardStarInputs = new Dictionary<Guid, string>();
+    private readonly Dictionary<Guid, string> attackStarInputs = new Dictionary<Guid, string>();
+    private readonly Dictionary<Guid, string> starMessages = new Dictionary<Guid, string>();
+    private readonly Dictionary<Guid, int> guardStarTotals = new Dictionary<Guid, int>();
+    private readonly Dictionary<Guid, int> attackStarTotals = new Dictionary<Guid, int>();
     private bool showGroupId;
     private const string GuardPurpose = "수호용";
     private List<Verse> guardVerses = new List<Verse>();
@@ -243,11 +275,13 @@ else
         var verses = await DataStore.GetVersesAsync();
         guardVerses = verses.Where(v => string.Equals(v.Type, GuardPurpose, StringComparison.OrdinalIgnoreCase)).ToList();
         quizzes = (await DataStore.GetQuizzesAsync()).ToList();
+        var rewards = await DataStore.GetQuizRewardsAsync();
         purposes = (await DataStore.GetVersePurposesAsync()).ToList();
         if (purposes.Count > 0 && string.IsNullOrWhiteSpace(selectedGuardUsePurpose))
         {
             selectedGuardUsePurpose = purposes[0];
         }
+        LoadStarTotals(rewards);
         SyncGuardWordPanel();
         SyncSelection();
     }
@@ -312,6 +346,57 @@ else
         passwordInputs[id] = value ?? string.Empty;
     }
 
+    private int GetGuardStarTotal(Guid id)
+    {
+        return guardStarTotals.TryGetValue(id, out var value) ? value : 0;
+    }
+
+    private int GetAttackStarTotal(Guid id)
+    {
+        return attackStarTotals.TryGetValue(id, out var value) ? value : 0;
+    }
+
+    private string GetGuardStarInput(Guid id)
+    {
+        return guardStarInputs.TryGetValue(id, out var value) ? value : GetGuardStarTotal(id).ToString();
+    }
+
+    private void SetGuardStarInput(Guid id, string? value)
+    {
+        guardStarInputs[id] = value ?? string.Empty;
+    }
+
+    private string GetAttackStarInput(Guid id)
+    {
+        return attackStarInputs.TryGetValue(id, out var value) ? value : GetAttackStarTotal(id).ToString();
+    }
+
+    private void SetAttackStarInput(Guid id, string? value)
+    {
+        attackStarInputs[id] = value ?? string.Empty;
+    }
+
+    private void LoadStarTotals(IReadOnlyList<QuizRewardEntry> rewards)
+    {
+        guardStarTotals.Clear();
+        attackStarTotals.Clear();
+
+        foreach (var group in groups)
+        {
+            var guardTotal = rewards
+                .Where(r => r.GroupId == group.Id && string.Equals(r.RewardType, RewardTypeGuard, StringComparison.OrdinalIgnoreCase))
+                .Sum(r => r.StarCount);
+            var attackTotal = rewards
+                .Where(r => r.GroupId == group.Id && string.Equals(r.RewardType, RewardTypeAttack, StringComparison.OrdinalIgnoreCase))
+                .Sum(r => r.StarCount);
+
+            guardStarTotals[group.Id] = guardTotal;
+            attackStarTotals[group.Id] = attackTotal;
+            guardStarInputs[group.Id] = guardTotal.ToString();
+            attackStarInputs[group.Id] = attackTotal.ToString();
+        }
+    }
+
     private void OpenGuardWordPanel(Group group)
     {
         guardWordGroupId = group.Id;
@@ -323,6 +408,47 @@ else
         quizRewardMessage = null;
         selectedRewardType = RewardTypeGuard;
         ResetTimer();
+    }
+
+    private async Task SaveStarTotalsAsync(Group group)
+    {
+        starMessages[group.Id] = string.Empty;
+
+        if (!int.TryParse(GetGuardStarInput(group.Id), out var desiredGuard) || desiredGuard < 0)
+        {
+            starMessages[group.Id] = "수호의 별은 0 이상으로 입력해 주세요.";
+            return;
+        }
+
+        if (!int.TryParse(GetAttackStarInput(group.Id), out var desiredAttack) || desiredAttack < 0)
+        {
+            starMessages[group.Id] = "공격의 별은 0 이상으로 입력해 주세요.";
+            return;
+        }
+
+        var currentGuard = GetGuardStarTotal(group.Id);
+        var currentAttack = GetAttackStarTotal(group.Id);
+        var guardDelta = desiredGuard - currentGuard;
+        var attackDelta = desiredAttack - currentAttack;
+
+        if (guardDelta == 0 && attackDelta == 0)
+        {
+            starMessages[group.Id] = "변경할 내용이 없습니다.";
+            return;
+        }
+
+        if (guardDelta != 0)
+        {
+            await DataStore.AddStarAdjustmentAsync(group.Id, RewardTypeGuard, guardDelta);
+        }
+
+        if (attackDelta != 0)
+        {
+            await DataStore.AddStarAdjustmentAsync(group.Id, RewardTypeAttack, attackDelta);
+        }
+
+        await ReloadAsync();
+        starMessages[group.Id] = "별 개수가 수정되었습니다.";
     }
 
     private void RefreshGuardVerse()

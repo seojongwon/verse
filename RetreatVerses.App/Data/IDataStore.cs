@@ -40,5 +40,6 @@ namespace RetreatVerses.App.Data
 
         Task<IReadOnlyList<QuizRewardEntry>> GetQuizRewardsAsync();
         Task<QuizRewardEntry> AddQuizRewardAsync(Guid groupId, Guid quizId, int responseSeconds, string rewardType, int starCount);
+        Task<QuizRewardEntry> AddStarAdjustmentAsync(Guid groupId, string rewardType, int starDelta);
     }
 }

@@ -725,6 +725,48 @@ namespace RetreatVerses.App.Data
             }
         }
 
+        public async Task<QuizRewardEntry> AddStarAdjustmentAsync(Guid groupId, string rewardType, int starDelta)
+        {
+            if (groupId == Guid.Empty)
+            {
+                throw new ArgumentException("Group id is required.", nameof(groupId));
+            }
+
+            if (string.IsNullOrWhiteSpace(rewardType))
+            {
+                throw new ArgumentException("Reward type is required.", nameof(rewardType));
+            }
+
+            if (starDelta == 0)
+            {
+                throw new ArgumentException("Star delta must be non-zero.", nameof(starDelta));
+            }
+
+            var entry = new QuizRewardEntry
+            {
+                Id = Guid.NewGuid(),
+                GroupId = groupId,
+                QuizId = Guid.Empty,
+                ResponseSeconds = 0,
+                RewardType = rewardType.Trim(),
+                StarCount = starDelta,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _mutex.WaitAsync();
+            try
+            {
+                var rewards = await ReadListInternalAsync<QuizRewardEntry>(QuizRewardsFileName);
+                rewards.Add(entry);
+                await WriteListInternalAsync(QuizRewardsFileName, rewards);
+                return entry;
+            }
+            finally
+            {
+                _mutex.Release();
+            }
+        }
+
         private async Task<IReadOnlyList<T>> ReadListAsync<T>(string fileName)
         {
             await _mutex.WaitAsync();
