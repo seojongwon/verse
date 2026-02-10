@@ -7,16 +7,6 @@
 <h3>조 관리</h3>
 
 <style>
-    .action-col {
-        width: 12rem;
-        min-width: 12rem;
-    }
-
-    .action-col .btn {
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
-    }
-
     .star-col {
         width: 6.5rem;
         min-width: 6.5rem;
@@ -25,11 +15,6 @@
     .star-col .form-control {
         padding-left: 0.4rem;
         padding-right: 0.4rem;
-    }
-
-    .star-update-col {
-        width: 5.5rem;
-        min-width: 5.5rem;
     }
 </style>
 
@@ -68,10 +53,9 @@ else
                     </th>
                     <th class="text-start align-middle">조 이름</th>
                     <th class="text-start align-middle">비밀번호</th>
-                    <th class="text-start align-middle action-col">작업</th>
+                    <th class="text-start align-middle">작업</th>
                     <th class="text-start align-middle star-col">수호의 별</th>
                     <th class="text-start align-middle star-col">공격의 별</th>
-                    <th class="text-start align-middle star-update-col">별 수정</th>
                     <th class="text-start align-middle">조 링크</th>
                     @if (showGroupId)
                     {
@@ -96,12 +80,10 @@ else
                                    @bind-value:set="value => SetPasswordInput(group.Id, value)"
                                    @bind-value:event="oninput" />
                         </td>
-                        <td class="action-col">
-                            <div class="d-flex flex-wrap gap-1">
-                                <button class="btn btn-sm btn-outline-primary" @onclick="() => SaveGroupAsync(group)">저장</button>
-                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteGroupAsync(group)">삭제</button>
-                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => OpenGuardWordPanel(group)">수호단어 등록</button>
-                            </div>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => SaveGroupAsync(group)">저장</button>
+                            <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteGroupAsync(group)">삭제</button>
+                            <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="() => OpenGuardWordPanel(group)">수호단어 등록</button>
                         </td>
                         <td class="star-col">
                             <div class="d-flex flex-column gap-1">
@@ -123,7 +105,7 @@ else
                                        @bind-value:event="oninput" />
                             </div>
                         </td>
-                        <td class="align-middle star-update-col">
+                        <td class="align-middle">
                             <button class="btn btn-sm btn-outline-success" @onclick="() => SaveStarTotalsAsync(group)">별 수정</button>
                             @if (starMessages.TryGetValue(group.Id, out var starMessage) && !string.IsNullOrWhiteSpace(starMessage))
                             {
