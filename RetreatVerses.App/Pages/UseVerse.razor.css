@@ -374,6 +374,10 @@
         align-items: start;
     }
 
+    .use-verse__table.is-multiselect tbody tr > td {
+        display: contents;
+    }
+
     .use-verse__table.is-multiselect .use-verse__text {
         grid-column: 2;
         padding-left: 0;
