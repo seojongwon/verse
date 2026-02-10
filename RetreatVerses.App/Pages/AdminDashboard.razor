@@ -136,56 +136,33 @@ else
     </div>
 
     <div class="mt-4">
-        <h5 class="mb-3">수호의 별 누적</h5>
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>조 이름</th>
-                        <th>수호의 별</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in guardStarStats)
-                    {
-                        <tr>
-                            <td>@item.GroupName</td>
-                            <td>@item.Total</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="mt-4">
-        <h5 class="mb-3">조별 수호 단어</h5>
+        <h5 class="mb-3">조별 수호 현황</h5>
         <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
                     <tr>
                         <th>조 이름</th>
                         <th>단어</th>
-                        <th>말씀</th>
+                        <th>수호의 별</th>
                         <th>등록일</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if (latestGuardWords.Count == 0)
+                    @if (guardSummaries.Count == 0)
                     {
                         <tr>
-                            <td colspan="4" class="text-muted">등록된 단어가 없습니다.</td>
+                            <td colspan="4" class="text-muted">표시할 정보가 없습니다.</td>
                         </tr>
                     }
                     else
                     {
-                        @foreach (var item in latestGuardWords)
+                        @foreach (var item in guardSummaries)
                         {
                             <tr>
                                 <td>@item.GroupName</td>
                                 <td>@item.Word</td>
-                                <td>@item.VerseText</td>
-                                <td>@item.CreatedAt.ToString("yyyy-MM-dd")</td>
+                                <td>@item.StarTotal</td>
+                                <td>@(item.CreatedAt.HasValue ? item.CreatedAt.Value.ToString("yyyy-MM-dd") : "-")</td>
                             </tr>
                         }
                     }
@@ -200,8 +177,7 @@ else
     private List<GroupStat> topByRegistrations = new List<GroupStat>();
     private List<GroupStat> topByUsed = new List<GroupStat>();
     private List<GroupStat> topByRecited = new List<GroupStat>();
-    private List<GroupStat> guardStarStats = new List<GroupStat>();
-    private List<GuardWordStat> latestGuardWords = new List<GuardWordStat>();
+    private List<GuardSummary> guardSummaries = new List<GuardSummary>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -229,23 +205,12 @@ else
             .OrderByDescending(s => s.Total)
             .ToList();
 
-        guardStarStats = groups
-            .Select(group =>
-            {
-                var total = rewards
-                    .Where(r => r.GroupId == group.Id && string.Equals(r.RewardType, "guard", StringComparison.OrdinalIgnoreCase))
-                    .Sum(r => r.StarCount);
-                return new GroupStat
-                {
-                    GroupName = group.Name,
-                    Total = total
-                };
-            })
-            .OrderByDescending(s => s.Total)
-            .ThenBy(s => s.GroupName)
-            .ToList();
+        var guardStarTotals = rewards
+            .Where(r => string.Equals(r.RewardType, "guard", StringComparison.OrdinalIgnoreCase))
+            .GroupBy(r => r.GroupId)
+            .ToDictionary(g => g.Key, g => g.Sum(x => x.StarCount));
 
-        latestGuardWords = guardWords
+        var latestGuardWords = guardWords
             .GroupBy(w => w.GroupId)
             .Select(g =>
             {
@@ -253,10 +218,25 @@ else
                 var groupName = groups.FirstOrDefault(gr => gr.Id == g.Key)?.Name ?? "알 수 없음";
                 return new GuardWordStat
                 {
+                    GroupId = g.Key,
                     GroupName = groupName,
                     Word = latest.Word,
-                    VerseText = latest.VerseText,
                     CreatedAt = latest.CreatedAt
+                };
+            })
+            .ToList();
+
+        guardSummaries = groups
+            .Select(group =>
+            {
+                var latest = latestGuardWords.FirstOrDefault(w => w.GroupId == group.Id);
+                var starTotal = guardStarTotals.TryGetValue(group.Id, out var total) ? total : 0;
+                return new GuardSummary
+                {
+                    GroupName = group.Name,
+                    Word = latest?.Word ?? "-",
+                    StarTotal = starTotal,
+                    CreatedAt = latest?.CreatedAt
                 };
             })
             .OrderBy(x => x.GroupName)
@@ -292,9 +272,17 @@ else
 
     private sealed class GuardWordStat
     {
+        public Guid GroupId { get; set; }
         public string GroupName { get; set; } = string.Empty;
         public string Word { get; set; } = string.Empty;
-        public string VerseText { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
+    }
+
+    private sealed class GuardSummary
+    {
+        public string GroupName { get; set; } = string.Empty;
+        public string Word { get; set; } = "-";
+        public int StarTotal { get; set; }
+        public DateTime? CreatedAt { get; set; }
     }
 }
