@@ -194,6 +194,11 @@
     overflow-wrap: anywhere;
 }
 
+.use-verse__text.table-wrap {
+    word-break: keep-all;
+    overflow-wrap: normal;
+}
+
 .use-verse__action {
     white-space: nowrap;
     display: inline-flex;
@@ -326,8 +331,8 @@
     .use-verse__text {
         font-size: 0.95rem;
         white-space: normal;
-        word-break: break-word;
-        overflow-wrap: anywhere;
+        word-break: keep-all;
+        overflow-wrap: normal;
     }
 
     .use-verse__table table {
