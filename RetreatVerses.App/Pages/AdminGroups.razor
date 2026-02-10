@@ -6,7 +6,39 @@
 
 <h3>조 관리</h3>
 
+@if (showToast && !string.IsNullOrWhiteSpace(toastMessage))
+{
+    <div class="admin-toast" role="status" aria-live="polite">
+        @toastMessage
+    </div>
+}
+
 <style>
+    .admin-toast {
+        position: fixed;
+        right: 1.25rem;
+        bottom: 1.25rem;
+        z-index: 1080;
+        background: #1f2937;
+        color: #f9fafb;
+        padding: 0.65rem 0.9rem;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        font-size: 0.9rem;
+        animation: toast-in 0.2s ease-out;
+    }
+
+    @keyframes toast-in {
+        from {
+            transform: translateY(8px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
     .star-col {
         width: 6.5rem;
         min-width: 6.5rem;
@@ -108,10 +140,6 @@ else
                             <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteGroupAsync(group)">삭제</button>
                             <a class="btn btn-sm btn-outline-secondary me-2" href="/group/@group.Id/verses">목록</a>
                             <a class="btn btn-sm btn-outline-secondary" href="/use/@group.Id">사용</a>
-                            @if (starMessages.TryGetValue(group.Id, out var starMessage) && !string.IsNullOrWhiteSpace(starMessage))
-                            {
-                                <small class="text-muted ms-2">@starMessage</small>
-                            }
                         </td>
                         @if (showGroupId)
                         {
@@ -229,9 +257,11 @@ else
     private readonly Dictionary<Guid, string> passwordInputs = new Dictionary<Guid, string>();
     private readonly Dictionary<Guid, string> guardStarInputs = new Dictionary<Guid, string>();
     private readonly Dictionary<Guid, string> attackStarInputs = new Dictionary<Guid, string>();
-    private readonly Dictionary<Guid, string> starMessages = new Dictionary<Guid, string>();
     private readonly Dictionary<Guid, int> guardStarTotals = new Dictionary<Guid, int>();
     private readonly Dictionary<Guid, int> attackStarTotals = new Dictionary<Guid, int>();
+    private string? toastMessage;
+    private bool showToast;
+    private CancellationTokenSource? toastCts;
     private bool showGroupId;
     private const string GuardPurpose = "수호용";
     private List<Verse> guardVerses = new List<Verse>();
@@ -274,11 +304,9 @@ else
 
     private async Task SaveGroupAndStarsAsync(Group group)
     {
-        starMessages[group.Id] = string.Empty;
-
         if (!TryGetStarInputs(group.Id, out var desiredGuard, out var desiredAttack, out var errorMessage))
         {
-            starMessages[group.Id] = errorMessage;
+            await ShowToastAsync(errorMessage);
             return;
         }
 
@@ -302,7 +330,7 @@ else
         }
 
         await ReloadAsync();
-        starMessages[group.Id] = "저장되었습니다.";
+        await ShowToastAsync("저장되었습니다.");
     }
 
     private async Task ReloadAsync()
@@ -467,6 +495,27 @@ else
         }
 
         return true;
+    }
+
+    private async Task ShowToastAsync(string message)
+    {
+        toastCts?.Cancel();
+        toastCts = new CancellationTokenSource();
+        toastMessage = message;
+        showToast = true;
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            await Task.Delay(2500, toastCts.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+
+        showToast = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     private void RefreshGuardVerse()
@@ -689,6 +738,8 @@ else
     {
         quizTimer?.Stop();
         quizTimer?.Dispose();
+        toastCts?.Cancel();
+        toastCts?.Dispose();
     }
 
     private bool IsAllSelected
