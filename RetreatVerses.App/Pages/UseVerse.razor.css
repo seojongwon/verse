@@ -206,6 +206,8 @@
     width: 1.05rem;
     height: 1.05rem;
     margin: 0;
+    margin-left: 0.25rem;
+    margin-right: 0.25rem;
     vertical-align: middle;
     appearance: none;
     -webkit-appearance: none;
