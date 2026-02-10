@@ -151,12 +151,18 @@ else
                     <div class="mt-2 d-flex flex-column gap-1">
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="rewardType"
-                                   value="@RewardTypeGuard" @bind="selectedRewardType" id="reward-guard" />
+                                   value="@RewardTypeGuard"
+                                   checked="@(selectedRewardType == RewardTypeGuard)"
+                                   @onchange="() => selectedRewardType = RewardTypeGuard"
+                                   id="reward-guard" />
                             <label class="form-check-label" for="reward-guard">수호의 별 (시스템 저장)</label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="rewardType"
-                                   value="@RewardTypeAttack" @bind="selectedRewardType" id="reward-attack" />
+                                   value="@RewardTypeAttack"
+                                   checked="@(selectedRewardType == RewardTypeAttack)"
+                                   @onchange="() => selectedRewardType = RewardTypeAttack"
+                                   id="reward-attack" />
                             <label class="form-check-label" for="reward-attack">공격의 별 (칩 지급)</label>
                         </div>
                     </div>
