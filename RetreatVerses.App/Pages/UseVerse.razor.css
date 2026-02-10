@@ -329,6 +329,7 @@
         white-space: normal;
         word-break: break-word;
         overflow-wrap: anywhere;
+        padding-right: 2.2rem;
     }
 
     .use-verse__table table {
