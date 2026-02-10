@@ -192,6 +192,7 @@
     white-space: normal;
     word-break: keep-all;
     overflow-wrap: anywhere;
+    padding-left: 1.2rem;
 }
 
 .use-verse__action {
@@ -206,7 +207,7 @@
     width: 1.05rem;
     height: 1.05rem;
     margin: 0;
-    margin-right: 1.2rem;
+    margin-right: 0;
     vertical-align: middle;
     appearance: none;
     -webkit-appearance: none;
