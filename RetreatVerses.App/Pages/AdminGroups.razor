@@ -241,7 +241,7 @@ else
                         }
                     </div>
                     <small class="text-muted d-block mt-2">
-                        5초 이내 3개, 15초 이내 2개, 그 이상 1개
+                        수호: 5초 이내 3개, 15초 이내 2개, 그 이상 1개 / 공격: 5초 이내 2개, 그 이상 1개
                     </small>
                 </div>
             }
@@ -701,7 +701,7 @@ else
             return;
         }
 
-        var starCount = CalculateStarCount(responseSeconds);
+        var starCount = CalculateStarCount(responseSeconds, selectedRewardType);
         await DataStore.AddQuizRewardAsync(guardWordGroupId.Value, activeQuiz.Id, responseSeconds, selectedRewardType, starCount);
 
         quizRewardMessage = selectedRewardType == RewardTypeGuard
@@ -709,8 +709,13 @@ else
             : $"공격의 별 {starCount}개 지급을 기록했습니다.";
     }
 
-    private static int CalculateStarCount(int responseSeconds)
+    private static int CalculateStarCount(int responseSeconds, string rewardType)
     {
+        if (string.Equals(rewardType, RewardTypeAttack, StringComparison.OrdinalIgnoreCase))
+        {
+            return responseSeconds <= 5 ? 2 : 1;
+        }
+
         if (responseSeconds <= 5)
         {
             return 3;
