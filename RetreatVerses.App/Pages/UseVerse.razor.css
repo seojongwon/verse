@@ -206,8 +206,7 @@
     width: 1.05rem;
     height: 1.05rem;
     margin: 0;
-    margin-left: 0.25rem;
-    margin-right: 0.25rem;
+    margin-right: 0.6rem;
     vertical-align: middle;
     appearance: none;
     -webkit-appearance: none;
@@ -329,7 +328,6 @@
         white-space: normal;
         word-break: break-word;
         overflow-wrap: anywhere;
-        padding-right: 2.2rem;
     }
 
     .use-verse__table table {
