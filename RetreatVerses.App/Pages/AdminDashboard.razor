@@ -133,6 +133,28 @@ else
                 </table>
             </div>
         </div>
+        <div class="col-md-6">
+            <h5 class="mb-3">수호실패 많은 조</h5>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>조 이름</th>
+                            <th>수호실패</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in topByGuardFailures)
+                        {
+                            <tr>
+                                <td>@item.GroupName</td>
+                                <td>@item.Total</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <div class="mt-4">
@@ -180,6 +202,7 @@ else
     private List<GroupStat> topByUsed = new List<GroupStat>();
     private List<GroupStat> topByRecited = new List<GroupStat>();
     private List<GuardSummary> guardSummaries = new List<GuardSummary>();
+    private List<GroupStat> topByGuardFailures = new List<GroupStat>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -248,8 +271,7 @@ else
                     CreatedAt = latest?.CreatedAt
                 };
             })
-            .OrderByDescending(x => x.FailureTotal)
-            .ThenBy(x => x.GroupName)
+            .OrderBy(x => x.GroupName)
             .ToList();
 
         topByRegistrations = stats
@@ -266,6 +288,21 @@ else
 
         topByRecited = stats
             .OrderByDescending(s => s.Recited)
+            .ThenBy(s => s.GroupName)
+            .Take(5)
+            .ToList();
+
+        topByGuardFailures = groups
+            .Select(group =>
+            {
+                var total = guardFailureTotals.TryGetValue(group.Id, out var failure) ? failure : 0;
+                return new GroupStat
+                {
+                    GroupName = group.Name,
+                    Total = total
+                };
+            })
+            .OrderByDescending(s => s.Total)
             .ThenBy(s => s.GroupName)
             .Take(5)
             .ToList();
