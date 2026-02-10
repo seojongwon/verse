@@ -345,13 +345,15 @@
     .use-verse__action {
         min-width: 0;
         justify-content: flex-start;
-        margin-top: 0.45rem;
+        align-items: flex-start;
+        margin-top: 0.2rem;
     }
 
     .use-verse__checkbox {
         width: 1.35rem;
         height: 1.35rem;
         transform: scale(1.2);
+        margin-top: 0.05rem;
     }
 
     .use-verse__search-row {
