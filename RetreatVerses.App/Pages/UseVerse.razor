@@ -153,7 +153,7 @@
                         {
                             <tr>
                                 <td class="use-verse__text table-wrap">@item.Text</td>
-                                <td class="text-end use-verse__action">
+                                <td class="use-verse__action @(IsMultiSelectMode ? null : "text-end")">
                                     @if (IsMultiSelectMode)
                                     {
                                         <input type="checkbox"

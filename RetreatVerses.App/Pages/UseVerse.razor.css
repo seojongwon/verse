@@ -364,8 +364,8 @@
 
     .use-verse__table.is-multiselect tbody tr {
         display: grid;
-        grid-template-columns: auto 1fr;
-        column-gap: 0.45rem;
+        grid-template-columns: 1.35rem 1fr;
+        column-gap: 0.4rem;
         align-items: start;
     }
 
@@ -378,6 +378,10 @@
         justify-content: flex-start;
         text-align: left;
         align-self: start;
+    }
+
+    .use-verse__table.is-multiselect .use-verse__checkbox {
+        margin-right: 0;
     }
 
     .use-verse__checkbox {
