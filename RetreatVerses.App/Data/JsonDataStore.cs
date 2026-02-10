@@ -22,6 +22,7 @@ namespace RetreatVerses.App.Data
         private const string GuardWordsFileName = "guard-words.json";
         private const string QuizzesFileName = "quizzes.json";
         private const string QuizRewardsFileName = "quiz-rewards.json";
+        private const string GuardFailuresFileName = "guard-failures.json";
         private const string DefaultMealPurpose = "식사용";
         private const string DefaultSnackPurpose = "간식용";
         private const string DefaultPilgrimPurpose = "천로역정";
@@ -759,6 +760,54 @@ namespace RetreatVerses.App.Data
                 var rewards = await ReadListInternalAsync<QuizRewardEntry>(QuizRewardsFileName);
                 rewards.Add(entry);
                 await WriteListInternalAsync(QuizRewardsFileName, rewards);
+                return entry;
+            }
+            finally
+            {
+                _mutex.Release();
+            }
+        }
+
+        public async Task<IReadOnlyList<GuardFailureEntry>> GetGuardFailuresAsync()
+        {
+            await _mutex.WaitAsync();
+            try
+            {
+                var failures = await ReadListInternalAsync<GuardFailureEntry>(GuardFailuresFileName);
+                return failures;
+            }
+            finally
+            {
+                _mutex.Release();
+            }
+        }
+
+        public async Task<GuardFailureEntry> AddGuardFailureAdjustmentAsync(Guid groupId, int countDelta)
+        {
+            if (groupId == Guid.Empty)
+            {
+                throw new ArgumentException("Group id is required.", nameof(groupId));
+            }
+
+            if (countDelta == 0)
+            {
+                throw new ArgumentException("Count delta must be non-zero.", nameof(countDelta));
+            }
+
+            var entry = new GuardFailureEntry
+            {
+                Id = Guid.NewGuid(),
+                GroupId = groupId,
+                CountDelta = countDelta,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _mutex.WaitAsync();
+            try
+            {
+                var failures = await ReadListInternalAsync<GuardFailureEntry>(GuardFailuresFileName);
+                failures.Add(entry);
+                await WriteListInternalAsync(GuardFailuresFileName, failures);
                 return entry;
             }
             finally

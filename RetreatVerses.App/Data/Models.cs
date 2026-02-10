@@ -53,4 +53,12 @@ namespace RetreatVerses.App.Data
         public int StarCount { get; set; }
         public DateTime CreatedAt { get; set; }
     }
+
+    public sealed class GuardFailureEntry
+    {
+        public Guid Id { get; set; }
+        public Guid GroupId { get; set; }
+        public int CountDelta { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
 }

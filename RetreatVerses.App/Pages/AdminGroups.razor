@@ -89,6 +89,7 @@ else
                     <th class="text-start align-middle">수호단어</th>
                     <th class="text-start align-middle star-col">수호의 별</th>
                     <th class="text-start align-middle star-col">공격의 별</th>
+                    <th class="text-start align-middle star-col">수호실패</th>
                     <th class="text-start align-middle">작업/링크</th>
                     @if (showGroupId)
                     {
@@ -133,6 +134,16 @@ else
                                        type="number" min="0"
                                        @bind-value:get="GetAttackStarInput(group.Id)"
                                        @bind-value:set="value => SetAttackStarInput(group.Id, value)"
+                                       @bind-value:event="oninput" />
+                            </div>
+                        </td>
+                        <td class="star-col">
+                            <div class="d-flex flex-column gap-1">
+                                <small class="text-muted">현재: @GetGuardFailureTotal(group.Id)</small>
+                                <input class="form-control form-control-sm"
+                                       type="number" min="0"
+                                       @bind-value:get="GetGuardFailureInput(group.Id)"
+                                       @bind-value:set="value => SetGuardFailureInput(group.Id, value)"
                                        @bind-value:event="oninput" />
                             </div>
                         </td>
@@ -258,8 +269,10 @@ else
     private readonly Dictionary<Guid, string> passwordInputs = new Dictionary<Guid, string>();
     private readonly Dictionary<Guid, string> guardStarInputs = new Dictionary<Guid, string>();
     private readonly Dictionary<Guid, string> attackStarInputs = new Dictionary<Guid, string>();
+    private readonly Dictionary<Guid, string> guardFailureInputs = new Dictionary<Guid, string>();
     private readonly Dictionary<Guid, int> guardStarTotals = new Dictionary<Guid, int>();
     private readonly Dictionary<Guid, int> attackStarTotals = new Dictionary<Guid, int>();
+    private readonly Dictionary<Guid, int> guardFailureTotals = new Dictionary<Guid, int>();
     private string? toastMessage;
     private bool showToast;
     private CancellationTokenSource? toastCts;
@@ -311,14 +324,22 @@ else
             return;
         }
 
+        if (!TryGetGuardFailureInput(group.Id, out var desiredFailure, out var failureMessage))
+        {
+            await ShowToastAsync(failureMessage);
+            return;
+        }
+
         passwordInputs.TryGetValue(group.Id, out var password);
         await DataStore.UpdateGroupAsync(group.Id, group.Name, string.IsNullOrWhiteSpace(password) ? null : password);
         passwordInputs.Remove(group.Id);
 
         var currentGuard = GetGuardStarTotal(group.Id);
         var currentAttack = GetAttackStarTotal(group.Id);
+        var currentFailure = GetGuardFailureTotal(group.Id);
         var guardDelta = desiredGuard - currentGuard;
         var attackDelta = desiredAttack - currentAttack;
+        var failureDelta = desiredFailure - currentFailure;
 
         if (guardDelta != 0)
         {
@@ -328,6 +349,11 @@ else
         if (attackDelta != 0)
         {
             await DataStore.AddStarAdjustmentAsync(group.Id, RewardTypeAttack, attackDelta);
+        }
+
+        if (failureDelta != 0)
+        {
+            await DataStore.AddGuardFailureAdjustmentAsync(group.Id, failureDelta);
         }
 
         await ReloadAsync();
@@ -341,6 +367,7 @@ else
         guardVerses = verses.Where(v => string.Equals(v.Type, GuardPurpose, StringComparison.OrdinalIgnoreCase)).ToList();
         quizzes = (await DataStore.GetQuizzesAsync()).ToList();
         var rewards = await DataStore.GetQuizRewardsAsync();
+        var failures = await DataStore.GetGuardFailuresAsync();
         purposes = (await DataStore.GetVersePurposesAsync())
             .Where(p => !string.Equals(p, GuardPurpose, StringComparison.OrdinalIgnoreCase))
             .ToList();
@@ -349,6 +376,7 @@ else
             selectedGuardUsePurpose = purposes[0];
         }
         LoadStarTotals(rewards);
+        LoadGuardFailureTotals(failures);
         SyncGuardWordPanel();
         SyncSelection();
     }
@@ -423,6 +451,11 @@ else
         return attackStarTotals.TryGetValue(id, out var value) ? value : 0;
     }
 
+    private int GetGuardFailureTotal(Guid id)
+    {
+        return guardFailureTotals.TryGetValue(id, out var value) ? value : 0;
+    }
+
     private string GetGuardStarInput(Guid id)
     {
         return guardStarInputs.TryGetValue(id, out var value) ? value : GetGuardStarTotal(id).ToString();
@@ -443,6 +476,16 @@ else
         attackStarInputs[id] = value ?? string.Empty;
     }
 
+    private string GetGuardFailureInput(Guid id)
+    {
+        return guardFailureInputs.TryGetValue(id, out var value) ? value : GetGuardFailureTotal(id).ToString();
+    }
+
+    private void SetGuardFailureInput(Guid id, string? value)
+    {
+        guardFailureInputs[id] = value ?? string.Empty;
+    }
+
     private void LoadStarTotals(IReadOnlyList<QuizRewardEntry> rewards)
     {
         guardStarTotals.Clear();
@@ -461,6 +504,17 @@ else
             attackStarTotals[group.Id] = attackTotal;
             guardStarInputs[group.Id] = guardTotal.ToString();
             attackStarInputs[group.Id] = attackTotal.ToString();
+        }
+    }
+
+    private void LoadGuardFailureTotals(IReadOnlyList<GuardFailureEntry> failures)
+    {
+        guardFailureTotals.Clear();
+        foreach (var group in groups)
+        {
+            var total = failures.Where(f => f.GroupId == group.Id).Sum(f => f.CountDelta);
+            guardFailureTotals[group.Id] = total;
+            guardFailureInputs[group.Id] = total.ToString();
         }
     }
 
@@ -492,6 +546,20 @@ else
         if (!int.TryParse(GetAttackStarInput(groupId), out desiredAttack) || desiredAttack < 0)
         {
             errorMessage = "공격의 별은 0 이상으로 입력해 주세요.";
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool TryGetGuardFailureInput(Guid groupId, out int desiredFailure, out string errorMessage)
+    {
+        desiredFailure = 0;
+        errorMessage = string.Empty;
+
+        if (!int.TryParse(GetGuardFailureInput(groupId), out desiredFailure) || desiredFailure < 0)
+        {
+            errorMessage = "수호실패는 0 이상으로 입력해 주세요.";
             return false;
         }
 

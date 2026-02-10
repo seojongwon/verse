@@ -144,6 +144,7 @@ else
                         <th>조 이름</th>
                         <th>단어</th>
                         <th>수호의 별</th>
+                        <th>수호실패</th>
                         <th>등록일</th>
                     </tr>
                 </thead>
@@ -151,7 +152,7 @@ else
                     @if (guardSummaries.Count == 0)
                     {
                         <tr>
-                            <td colspan="4" class="text-muted">표시할 정보가 없습니다.</td>
+                            <td colspan="5" class="text-muted">표시할 정보가 없습니다.</td>
                         </tr>
                     }
                     else
@@ -162,6 +163,7 @@ else
                                 <td>@item.GroupName</td>
                                 <td>@item.Word</td>
                                 <td>@item.StarTotal</td>
+                                <td>@item.FailureTotal</td>
                                 <td>@(item.CreatedAt.HasValue ? item.CreatedAt.Value.ToString("yyyy-MM-dd") : "-")</td>
                             </tr>
                         }
@@ -184,6 +186,7 @@ else
         var groups = await DataStore.GetGroupsAsync();
         var registrations = await DataStore.GetRegistrationsAsync();
         var rewards = await DataStore.GetQuizRewardsAsync();
+        var failures = await DataStore.GetGuardFailuresAsync();
         var guardWords = await DataStore.GetGuardWordsAsync();
 
         stats = groups
@@ -210,6 +213,10 @@ else
             .GroupBy(r => r.GroupId)
             .ToDictionary(g => g.Key, g => g.Sum(x => x.StarCount));
 
+        var guardFailureTotals = failures
+            .GroupBy(f => f.GroupId)
+            .ToDictionary(g => g.Key, g => g.Sum(x => x.CountDelta));
+
         var latestGuardWords = guardWords
             .GroupBy(w => w.GroupId)
             .Select(g =>
@@ -231,11 +238,13 @@ else
             {
                 var latest = latestGuardWords.FirstOrDefault(w => w.GroupId == group.Id);
                 var starTotal = guardStarTotals.TryGetValue(group.Id, out var total) ? total : 0;
+                var failureTotal = guardFailureTotals.TryGetValue(group.Id, out var failure) ? failure : 0;
                 return new GuardSummary
                 {
                     GroupName = group.Name,
                     Word = latest?.Word ?? "-",
                     StarTotal = starTotal,
+                    FailureTotal = failureTotal,
                     CreatedAt = latest?.CreatedAt
                 };
             })
@@ -283,6 +292,7 @@ else
         public string GroupName { get; set; } = string.Empty;
         public string Word { get; set; } = "-";
         public int StarTotal { get; set; }
+        public int FailureTotal { get; set; }
         public DateTime? CreatedAt { get; set; }
     }
 }

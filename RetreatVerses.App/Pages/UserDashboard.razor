@@ -72,6 +72,14 @@
                     <strong class="user-dashboard__value">@guardStarTotal</strong>
                 </div>
             </div>
+
+            <div class="user-dashboard__section">
+                <p class="user-dashboard__section-title">수호실패</p>
+                <div class="user-dashboard__metric">
+                    <span class="user-dashboard__label">수호실패</span>
+                    <strong class="user-dashboard__value">@guardFailureTotal</strong>
+                </div>
+            </div>
         }
     </div>
 </section>
@@ -81,6 +89,7 @@
     private List<PurposeCount> purposeCounts = new List<PurposeCount>();
     private GuardWordEntry? latestGuardWord;
     private int guardStarTotal;
+    private int guardFailureTotal;
     private string groupNameInput = string.Empty;
     private string groupPasswordInput = string.Empty;
     private string? searchMessage;
@@ -156,6 +165,11 @@
         guardStarTotal = rewards
             .Where(r => r.GroupId == group.Id && string.Equals(r.RewardType, "guard", StringComparison.OrdinalIgnoreCase))
             .Sum(r => r.StarCount);
+
+        var failures = await DataStore.GetGuardFailuresAsync();
+        guardFailureTotal = failures
+            .Where(f => f.GroupId == group.Id)
+            .Sum(f => f.CountDelta);
     }
 
     private sealed class PurposeCount
