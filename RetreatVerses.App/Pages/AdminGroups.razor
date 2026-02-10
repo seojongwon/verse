@@ -6,6 +6,18 @@
 
 <h3>조 관리</h3>
 
+<style>
+    .star-col {
+        width: 6.5rem;
+        min-width: 6.5rem;
+    }
+
+    .star-col .form-control {
+        padding-left: 0.4rem;
+        padding-right: 0.4rem;
+    }
+</style>
+
 <div class="mb-3">
     <label class="form-label">새 조 이름</label>
     <div class="group-add-row">
@@ -41,9 +53,9 @@ else
                     </th>
                     <th class="text-start align-middle">조 이름</th>
                     <th class="text-start align-middle">비밀번호</th>
-                    <th class="text-start align-middle">수호의 별</th>
-                    <th class="text-start align-middle">공격의 별</th>
                     <th class="text-start align-middle">작업</th>
+                    <th class="text-start align-middle star-col">수호의 별</th>
+                    <th class="text-start align-middle star-col">공격의 별</th>
                     <th class="text-start align-middle">조 링크</th>
                     @if (showGroupId)
                     {
@@ -69,6 +81,16 @@ else
                                    @bind-value:event="oninput" />
                         </td>
                         <td>
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => SaveGroupAsync(group)">저장</button>
+                            <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteGroupAsync(group)">삭제</button>
+                            <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="() => OpenGuardWordPanel(group)">수호단어 등록</button>
+                            <button class="btn btn-sm btn-outline-success ms-2" @onclick="() => SaveStarTotalsAsync(group)">별 수정</button>
+                            @if (starMessages.TryGetValue(group.Id, out var starMessage) && !string.IsNullOrWhiteSpace(starMessage))
+                            {
+                                <small class="text-muted ms-2">@starMessage</small>
+                            }
+                        </td>
+                        <td class="star-col">
                             <div class="d-flex flex-column gap-1">
                                 <small class="text-muted">현재: @GetGuardStarTotal(group.Id)</small>
                                 <input class="form-control form-control-sm"
@@ -78,7 +100,7 @@ else
                                        @bind-value:event="oninput" />
                             </div>
                         </td>
-                        <td>
+                        <td class="star-col">
                             <div class="d-flex flex-column gap-1">
                                 <small class="text-muted">현재: @GetAttackStarTotal(group.Id)</small>
                                 <input class="form-control form-control-sm"
@@ -87,16 +109,6 @@ else
                                        @bind-value:set="value => SetAttackStarInput(group.Id, value)"
                                        @bind-value:event="oninput" />
                             </div>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary" @onclick="() => SaveGroupAsync(group)">저장</button>
-                            <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteGroupAsync(group)">삭제</button>
-                            <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="() => OpenGuardWordPanel(group)">수호단어 등록</button>
-                            <button class="btn btn-sm btn-outline-success ms-2" @onclick="() => SaveStarTotalsAsync(group)">별 수정</button>
-                            @if (starMessages.TryGetValue(group.Id, out var starMessage) && !string.IsNullOrWhiteSpace(starMessage))
-                            {
-                                <small class="text-muted ms-2">@starMessage</small>
-                            }
                         </td>
                         <td>
                             <a class="btn btn-sm btn-outline-secondary me-2" href="/group/@group.Id/verses">목록</a>
