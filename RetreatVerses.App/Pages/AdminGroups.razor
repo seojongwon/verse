@@ -81,9 +81,7 @@ else
                                    @bind-value:event="oninput" />
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" @onclick="() => SaveGroupAsync(group)">저장</button>
-                            <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteGroupAsync(group)">삭제</button>
-                            <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="() => OpenGuardWordPanel(group)">수호단어 등록</button>
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => OpenGuardWordPanel(group)">수호단어 등록</button>
                         </td>
                         <td class="star-col">
                             <div class="d-flex flex-column gap-1">
@@ -105,16 +103,15 @@ else
                                        @bind-value:event="oninput" />
                             </div>
                         </td>
-                        <td class="align-middle">
-                            <button class="btn btn-sm btn-outline-success" @onclick="() => SaveStarTotalsAsync(group)">별 수정</button>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => SaveGroupAndStarsAsync(group)">저장</button>
+                            <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteGroupAsync(group)">삭제</button>
+                            <a class="btn btn-sm btn-outline-secondary me-2" href="/group/@group.Id/verses">목록</a>
+                            <a class="btn btn-sm btn-outline-secondary" href="/use/@group.Id">사용</a>
                             @if (starMessages.TryGetValue(group.Id, out var starMessage) && !string.IsNullOrWhiteSpace(starMessage))
                             {
                                 <small class="text-muted ms-2">@starMessage</small>
                             }
-                        </td>
-                        <td>
-                            <a class="btn btn-sm btn-outline-secondary me-2" href="/group/@group.Id/verses">목록</a>
-                            <a class="btn btn-sm btn-outline-secondary" href="/use/@group.Id">사용</a>
                         </td>
                         @if (showGroupId)
                         {
@@ -275,12 +272,37 @@ else
         await ReloadAsync();
     }
 
-    private async Task SaveGroupAsync(Group group)
+    private async Task SaveGroupAndStarsAsync(Group group)
     {
+        starMessages[group.Id] = string.Empty;
+
+        if (!TryGetStarInputs(group.Id, out var desiredGuard, out var desiredAttack, out var errorMessage))
+        {
+            starMessages[group.Id] = errorMessage;
+            return;
+        }
+
         passwordInputs.TryGetValue(group.Id, out var password);
         await DataStore.UpdateGroupAsync(group.Id, group.Name, string.IsNullOrWhiteSpace(password) ? null : password);
         passwordInputs.Remove(group.Id);
+
+        var currentGuard = GetGuardStarTotal(group.Id);
+        var currentAttack = GetAttackStarTotal(group.Id);
+        var guardDelta = desiredGuard - currentGuard;
+        var attackDelta = desiredAttack - currentAttack;
+
+        if (guardDelta != 0)
+        {
+            await DataStore.AddStarAdjustmentAsync(group.Id, RewardTypeGuard, guardDelta);
+        }
+
+        if (attackDelta != 0)
+        {
+            await DataStore.AddStarAdjustmentAsync(group.Id, RewardTypeAttack, attackDelta);
+        }
+
         await ReloadAsync();
+        starMessages[group.Id] = "저장되었습니다.";
     }
 
     private async Task ReloadAsync()
@@ -424,45 +446,25 @@ else
         ResetTimer();
     }
 
-    private async Task SaveStarTotalsAsync(Group group)
+    private bool TryGetStarInputs(Guid groupId, out int desiredGuard, out int desiredAttack, out string errorMessage)
     {
-        starMessages[group.Id] = string.Empty;
+        desiredGuard = 0;
+        desiredAttack = 0;
+        errorMessage = string.Empty;
 
-        if (!int.TryParse(GetGuardStarInput(group.Id), out var desiredGuard) || desiredGuard < 0)
+        if (!int.TryParse(GetGuardStarInput(groupId), out desiredGuard) || desiredGuard < 0)
         {
-            starMessages[group.Id] = "수호의 별은 0 이상으로 입력해 주세요.";
-            return;
+            errorMessage = "수호의 별은 0 이상으로 입력해 주세요.";
+            return false;
         }
 
-        if (!int.TryParse(GetAttackStarInput(group.Id), out var desiredAttack) || desiredAttack < 0)
+        if (!int.TryParse(GetAttackStarInput(groupId), out desiredAttack) || desiredAttack < 0)
         {
-            starMessages[group.Id] = "공격의 별은 0 이상으로 입력해 주세요.";
-            return;
+            errorMessage = "공격의 별은 0 이상으로 입력해 주세요.";
+            return false;
         }
 
-        var currentGuard = GetGuardStarTotal(group.Id);
-        var currentAttack = GetAttackStarTotal(group.Id);
-        var guardDelta = desiredGuard - currentGuard;
-        var attackDelta = desiredAttack - currentAttack;
-
-        if (guardDelta == 0 && attackDelta == 0)
-        {
-            starMessages[group.Id] = "변경할 내용이 없습니다.";
-            return;
-        }
-
-        if (guardDelta != 0)
-        {
-            await DataStore.AddStarAdjustmentAsync(group.Id, RewardTypeGuard, guardDelta);
-        }
-
-        if (attackDelta != 0)
-        {
-            await DataStore.AddStarAdjustmentAsync(group.Id, RewardTypeAttack, attackDelta);
-        }
-
-        await ReloadAsync();
-        starMessages[group.Id] = "별 개수가 수정되었습니다.";
+        return true;
     }
 
     private void RefreshGuardVerse()
