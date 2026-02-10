@@ -5,7 +5,7 @@
 <section class="user-dashboard">
     <header class="user-dashboard__header">
         <p class="user-dashboard__eyebrow">사용자 대시보드</p>
-        <h3 class="user-dashboard__title">말씀 현황</h3>
+        <h3 class="user-dashboard__title">@dashboardTitle</h3>
     </header>
 
     <div class="user-dashboard__panel">
@@ -86,6 +86,7 @@
     private string? searchMessage;
     private bool isAuthorized;
     private Group? group;
+    private string dashboardTitle => group == null ? "말씀 현황" : $"{group.Name} 말씀 현황";
 
     private async Task FindGroupByNameAsync()
     {
