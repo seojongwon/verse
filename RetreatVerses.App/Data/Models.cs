@@ -42,4 +42,14 @@ namespace RetreatVerses.App.Data
         public string Answer { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }
+
+    public sealed class QuizRewardEntry
+    {
+        public Guid Id { get; set; }
+        public Guid GroupId { get; set; }
+        public Guid QuizId { get; set; }
+        public int ResponseSeconds { get; set; }
+        public string RewardType { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+    }
 }

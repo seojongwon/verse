@@ -21,6 +21,7 @@ namespace RetreatVerses.App.Data
         private const string PurposesFileName = "purposes.json";
         private const string GuardWordsFileName = "guard-words.json";
         private const string QuizzesFileName = "quizzes.json";
+        private const string QuizRewardsFileName = "quiz-rewards.json";
         private const string DefaultMealPurpose = "식사용";
         private const string DefaultSnackPurpose = "간식용";
         private const string DefaultPilgrimPurpose = "천로역정";
@@ -661,6 +662,61 @@ namespace RetreatVerses.App.Data
                     await WriteListInternalAsync(QuizzesFileName, quizzes);
                 }
                 return removed;
+            }
+            finally
+            {
+                _mutex.Release();
+            }
+        }
+
+        public async Task<IReadOnlyList<QuizRewardEntry>> GetQuizRewardsAsync()
+        {
+            await _mutex.WaitAsync();
+            try
+            {
+                var rewards = await ReadListInternalAsync<QuizRewardEntry>(QuizRewardsFileName);
+                return rewards;
+            }
+            finally
+            {
+                _mutex.Release();
+            }
+        }
+
+        public async Task<QuizRewardEntry> AddQuizRewardAsync(Guid groupId, Guid quizId, int responseSeconds, string rewardType)
+        {
+            if (groupId == Guid.Empty)
+            {
+                throw new ArgumentException("Group id is required.", nameof(groupId));
+            }
+
+            if (quizId == Guid.Empty)
+            {
+                throw new ArgumentException("Quiz id is required.", nameof(quizId));
+            }
+
+            if (string.IsNullOrWhiteSpace(rewardType))
+            {
+                throw new ArgumentException("Reward type is required.", nameof(rewardType));
+            }
+
+            var entry = new QuizRewardEntry
+            {
+                Id = Guid.NewGuid(),
+                GroupId = groupId,
+                QuizId = quizId,
+                ResponseSeconds = Math.Max(0, responseSeconds),
+                RewardType = rewardType.Trim(),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _mutex.WaitAsync();
+            try
+            {
+                var rewards = await ReadListInternalAsync<QuizRewardEntry>(QuizRewardsFileName);
+                rewards.Add(entry);
+                await WriteListInternalAsync(QuizRewardsFileName, rewards);
+                return entry;
             }
             finally
             {
