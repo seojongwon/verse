@@ -375,10 +375,12 @@
     }
 
     .use-verse__table.is-multiselect .use-verse__text {
+        grid-column: 2;
         padding-left: 0;
     }
 
     .use-verse__table.is-multiselect .use-verse__action {
+        grid-column: 1;
         position: static;
         justify-content: flex-start;
         text-align: left;
