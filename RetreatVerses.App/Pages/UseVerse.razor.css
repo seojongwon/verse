@@ -365,7 +365,7 @@
     .use-verse__table.is-multiselect tbody tr {
         display: grid;
         grid-template-columns: auto 1fr;
-        column-gap: 0.8rem;
+        column-gap: 0.45rem;
         align-items: start;
     }
 
@@ -375,6 +375,9 @@
 
     .use-verse__table.is-multiselect .use-verse__action {
         position: static;
+        justify-content: flex-start;
+        text-align: left;
+        align-self: start;
     }
 
     .use-verse__checkbox {
