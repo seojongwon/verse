@@ -312,7 +312,9 @@ else
         guardVerses = verses.Where(v => string.Equals(v.Type, GuardPurpose, StringComparison.OrdinalIgnoreCase)).ToList();
         quizzes = (await DataStore.GetQuizzesAsync()).ToList();
         var rewards = await DataStore.GetQuizRewardsAsync();
-        purposes = (await DataStore.GetVersePurposesAsync()).ToList();
+        purposes = (await DataStore.GetVersePurposesAsync())
+            .Where(p => !string.Equals(p, GuardPurpose, StringComparison.OrdinalIgnoreCase))
+            .ToList();
         if (purposes.Count > 0 && string.IsNullOrWhiteSpace(selectedGuardUsePurpose))
         {
             selectedGuardUsePurpose = purposes[0];

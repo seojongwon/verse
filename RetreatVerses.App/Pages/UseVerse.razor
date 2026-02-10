@@ -197,6 +197,7 @@
     private const string PasswordCookiePrefix = "rv_group_pw_";
     private const string LastGroupCookieKey = "rv_last_group_name";
     private const string PilgrimPurpose = "천로역정";
+    private const string GuardPurpose = "수호용";
     private static readonly IReadOnlyList<UseOption> UseOptions = new List<UseOption>
     {
         new UseOption("meal", "식사사용", new[] { "식사용" }),
@@ -207,7 +208,9 @@
     protected override async Task OnInitializedAsync()
     {
         ResolveUseOption();
-        purposes = (await DataStore.GetVersePurposesAsync()).ToList();
+        purposes = (await DataStore.GetVersePurposesAsync())
+            .Where(p => !string.Equals(p, GuardPurpose, StringComparison.OrdinalIgnoreCase))
+            .ToList();
         ResolveUseOptionWithPurposes();
         if (GroupId.HasValue && GroupId.Value != Guid.Empty)
         {
@@ -437,7 +440,9 @@
         resolvedGroupId = group!.Id;
         registrations = (await DataStore.GetRegistrationsForGroupAsync(resolvedGroupId)).ToList();
         verseMap = (await DataStore.GetVersesAsync()).ToDictionary(v => v.Id, v => v);
-        purposes = (await DataStore.GetVersePurposesAsync()).ToList();
+        purposes = (await DataStore.GetVersePurposesAsync())
+            .Where(p => !string.Equals(p, GuardPurpose, StringComparison.OrdinalIgnoreCase))
+            .ToList();
         ResolveUseOptionWithPurposes();
         if (activeUseOption == null && purposes.Count > 0 && (string.IsNullOrWhiteSpace(selectedType) || !purposes.Contains(selectedType)))
         {
