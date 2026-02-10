@@ -248,7 +248,8 @@ else
                     CreatedAt = latest?.CreatedAt
                 };
             })
-            .OrderBy(x => x.GroupName)
+            .OrderByDescending(x => x.FailureTotal)
+            .ThenBy(x => x.GroupName)
             .ToList();
 
         topByRegistrations = stats
