@@ -157,6 +157,42 @@ else
             </table>
         </div>
     </div>
+
+    <div class="mt-4">
+        <h5 class="mb-3">조별 수호 단어</h5>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>조 이름</th>
+                        <th>단어</th>
+                        <th>말씀</th>
+                        <th>등록일</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (latestGuardWords.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="4" class="text-muted">등록된 단어가 없습니다.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in latestGuardWords)
+                        {
+                            <tr>
+                                <td>@item.GroupName</td>
+                                <td>@item.Word</td>
+                                <td>@item.VerseText</td>
+                                <td>@item.CreatedAt.ToString("yyyy-MM-dd")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 }
 
 @code {
@@ -165,12 +201,14 @@ else
     private List<GroupStat> topByUsed = new List<GroupStat>();
     private List<GroupStat> topByRecited = new List<GroupStat>();
     private List<GroupStat> guardStarStats = new List<GroupStat>();
+    private List<GuardWordStat> latestGuardWords = new List<GuardWordStat>();
 
     protected override async Task OnInitializedAsync()
     {
         var groups = await DataStore.GetGroupsAsync();
         var registrations = await DataStore.GetRegistrationsAsync();
         var rewards = await DataStore.GetQuizRewardsAsync();
+        var guardWords = await DataStore.GetGuardWordsAsync();
 
         stats = groups
             .Select(group =>
@@ -207,6 +245,23 @@ else
             .ThenBy(s => s.GroupName)
             .ToList();
 
+        latestGuardWords = guardWords
+            .GroupBy(w => w.GroupId)
+            .Select(g =>
+            {
+                var latest = g.OrderByDescending(x => x.CreatedAt).First();
+                var groupName = groups.FirstOrDefault(gr => gr.Id == g.Key)?.Name ?? "알 수 없음";
+                return new GuardWordStat
+                {
+                    GroupName = groupName,
+                    Word = latest.Word,
+                    VerseText = latest.VerseText,
+                    CreatedAt = latest.CreatedAt
+                };
+            })
+            .OrderBy(x => x.GroupName)
+            .ToList();
+
         topByRegistrations = stats
             .OrderByDescending(s => s.Total)
             .ThenBy(s => s.GroupName)
@@ -233,5 +288,13 @@ else
         public int Used { get; set; }
         public int Recited { get; set; }
         public int Pending { get; set; }
+    }
+
+    private sealed class GuardWordStat
+    {
+        public string GroupName { get; set; } = string.Empty;
+        public string Word { get; set; } = string.Empty;
+        public string VerseText { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
     }
 }
