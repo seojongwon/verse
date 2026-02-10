@@ -52,7 +52,7 @@
             </div>
 
             <div class="user-dashboard__section">
-                <p class="user-dashboard__section-title">최근 선택 단어</p>
+                <p class="user-dashboard__section-title">수호단어</p>
                 @if (latestGuardWord == null)
                 {
                     <p class="text-muted">등록된 단어가 없습니다.</p>
@@ -61,11 +61,6 @@
                 {
                     <div class="user-dashboard__word">
                         <strong>@latestGuardWord.Word</strong>
-                        <p class="user-dashboard__verse">@latestGuardWord.VerseText</p>
-                        @if (!string.IsNullOrWhiteSpace(latestGuardWord.Purpose))
-                        {
-                            <p class="user-dashboard__verse">사용 용도: @latestGuardWord.Purpose</p>
-                        }
                     </div>
                 }
             </div>
