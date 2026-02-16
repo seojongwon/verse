@@ -573,6 +573,99 @@ namespace RetreatVerses.App.Data
             }
         }
 
+        public async Task<bool> UpdateVersePurposeAsync(string oldName, string newName)
+        {
+            if (string.IsNullOrWhiteSpace(oldName) || string.IsNullOrWhiteSpace(newName))
+            {
+                return false;
+            }
+
+            var oldValue = oldName.Trim();
+            var newValue = newName.Trim();
+
+            await _mutex.WaitAsync();
+            try
+            {
+                await EnsureDefaultPurposesAsync();
+                var purposes = await ReadListInternalAsync<string>(PurposesFileName);
+                var index = purposes.FindIndex(p => string.Equals(p, oldValue, StringComparison.OrdinalIgnoreCase));
+                if (index < 0)
+                {
+                    return false;
+                }
+
+                if (!string.Equals(oldValue, newValue, StringComparison.OrdinalIgnoreCase)
+                    && purposes.Any(p => string.Equals(p, newValue, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return false;
+                }
+
+                purposes[index] = newValue;
+                await WriteListInternalAsync(PurposesFileName, purposes);
+
+                var verses = await ReadListInternalAsync<Verse>(VersesFileName);
+                foreach (var verse in verses.Where(v => string.Equals(v.Type, oldValue, StringComparison.OrdinalIgnoreCase)))
+                {
+                    verse.Type = newValue;
+                }
+                await WriteListInternalAsync(VersesFileName, verses);
+
+                var guardWords = await ReadListInternalAsync<GuardWordEntry>(GuardWordsFileName);
+                foreach (var word in guardWords.Where(w => string.Equals(w.Purpose, oldValue, StringComparison.OrdinalIgnoreCase)))
+                {
+                    word.Purpose = newValue;
+                }
+                await WriteListInternalAsync(GuardWordsFileName, guardWords);
+
+                return true;
+            }
+            finally
+            {
+                _mutex.Release();
+            }
+        }
+
+        public async Task<bool> DeleteVersePurposeAsync(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return false;
+            }
+
+            var value = name.Trim();
+
+            await _mutex.WaitAsync();
+            try
+            {
+                await EnsureDefaultPurposesAsync();
+                var purposes = await ReadListInternalAsync<string>(PurposesFileName);
+                var removed = purposes.RemoveAll(p => string.Equals(p, value, StringComparison.OrdinalIgnoreCase));
+                if (removed == 0)
+                {
+                    return false;
+                }
+
+                var verses = await ReadListInternalAsync<Verse>(VersesFileName);
+                if (verses.Any(v => string.Equals(v.Type, value, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return false;
+                }
+
+                var guardWords = await ReadListInternalAsync<GuardWordEntry>(GuardWordsFileName);
+                if (guardWords.Any(w => string.Equals(w.Purpose, value, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return false;
+                }
+
+                await WriteListInternalAsync(PurposesFileName, purposes);
+                return true;
+            }
+            finally
+            {
+                _mutex.Release();
+            }
+        }
+
         public async Task<IReadOnlyList<GuardWordEntry>> GetGuardWordsAsync()
         {
             await _mutex.WaitAsync();

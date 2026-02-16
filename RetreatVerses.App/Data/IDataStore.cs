@@ -22,6 +22,8 @@ namespace RetreatVerses.App.Data
         Task<int> DeleteAllVersesAsync();
         Task<IReadOnlyList<string>> GetVersePurposesAsync();
         Task<bool> AddVersePurposeAsync(string name);
+        Task<bool> UpdateVersePurposeAsync(string oldName, string newName);
+        Task<bool> DeleteVersePurposeAsync(string name);
 
         Task<IReadOnlyList<Registration>> GetRegistrationsAsync();
         Task<IReadOnlyList<Registration>> GetRegistrationsForGroupAsync(Guid groupId);
