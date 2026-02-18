@@ -42,11 +42,11 @@
 @code {
     private readonly IReadOnlyList<WheelItem> Items = new List<WheelItem>
     {
-        new("수호의 요새 7강화", 5, "#ef4444"),
-        new("공격의 거대광선 7강화", 5, "#f97316"),
-        new("수호의 벙커 2강화", 40, "#22c55e"),
-        new("레이저건 1강화", 40, "#3b82f6"),
-        new("꽝", 10, "#64748b")
+        new("수호의 요새 7강화", 10, "#ef4444"),
+        new("레이저건 1강화", 35, "#3b82f6"),
+        new("꽝", 13, "#64748b"),
+        new("공격의 거대광선 7강화", 7, "#f97316"),
+        new("레이저건 1강화", 35, "#2563eb")
     };
 
     private bool isSpinning;
@@ -109,28 +109,19 @@
 
     private int PickWeightedIndex()
     {
-        var roll = Random.Shared.Next(1, 101);
-        if (roll <= 5)
+        var totalWeight = Items.Sum(i => i.Weight);
+        var roll = Random.Shared.Next(1, totalWeight + 1);
+        var cumulative = 0;
+        for (var i = 0; i < Items.Count; i++)
         {
-            return 0; // 수호의 요새 7강화 (5%)
+            cumulative += Items[i].Weight;
+            if (roll <= cumulative)
+            {
+                return i;
+            }
         }
 
-        if (roll <= 10)
-        {
-            return 1; // 공격의 거대광선 7강화 (5%)
-        }
-
-        if (roll <= 50)
-        {
-            return 2; // 수호의 벙커 2강화 (40%)
-        }
-
-        if (roll <= 90)
-        {
-            return 3; // 레이저건 1강화 (40%)
-        }
-
-        return 4; // 꽝 (10%)
+        return Items.Count - 1;
     }
 
     private double GetSegmentCenterAngle(int index)
