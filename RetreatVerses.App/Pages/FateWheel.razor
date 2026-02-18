@@ -109,19 +109,28 @@
 
     private int PickWeightedIndex()
     {
-        var totalWeight = Items.Sum(i => i.Weight);
-        var roll = Random.Shared.Next(totalWeight);
-        var cumulative = 0;
-        for (var i = 0; i < Items.Count; i++)
+        var roll = Random.Shared.Next(1, 101);
+        if (roll <= 5)
         {
-            cumulative += Items[i].Weight;
-            if (roll < cumulative)
-            {
-                return i;
-            }
+            return 0; // 수호의 요새 7강화 (5%)
         }
 
-        return Items.Count - 1;
+        if (roll <= 10)
+        {
+            return 1; // 공격의 거대광선 7강화 (5%)
+        }
+
+        if (roll <= 50)
+        {
+            return 2; // 수호의 벙커 2강화 (40%)
+        }
+
+        if (roll <= 90)
+        {
+            return 3; // 레이저건 1강화 (40%)
+        }
+
+        return 4; // 꽝 (10%)
     }
 
     private double GetSegmentCenterAngle(int index)
@@ -140,11 +149,10 @@
     {
         var slices = new List<string>();
         double cursorPercent = 0;
-        var totalWeight = Items.Sum(i => i.Weight);
 
         foreach (var item in Items)
         {
-            var nextPercent = cursorPercent + ((item.Weight * 100.0) / totalWeight);
+            var nextPercent = cursorPercent + item.Weight;
             slices.Add($"{item.Color} {cursorPercent:F3}% {nextPercent:F3}%");
             cursorPercent = nextPercent;
         }
