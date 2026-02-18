@@ -207,6 +207,14 @@
     min-width: 3.5rem;
 }
 
+.use-verse__table:not(.is-multiselect) .use-verse__text {
+    padding-right: 1.4rem;
+}
+
+.use-verse__table:not(.is-multiselect) .use-verse__action {
+    min-width: 6.2rem;
+}
+
 .use-verse__checkbox {
     width: 1.05rem;
     height: 1.05rem;
@@ -357,7 +365,7 @@
     }
 
     .use-verse__table:not(.is-multiselect) tbody tr {
-        padding-right: 3rem;
+        padding-right: 4.8rem;
     }
 
     .use-verse__table:not(.is-multiselect) .use-verse__action {
