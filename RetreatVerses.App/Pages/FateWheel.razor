@@ -11,6 +11,7 @@
 
     <div class="fate-wheel__stage">
         <div class="fate-wheel__pointer" aria-hidden="true"></div>
+        <div class="fate-wheel__rim" aria-hidden="true"></div>
         <div class="fate-wheel__wheel"
              style="@WheelStyle"
              aria-label="운명의 회전판">
@@ -19,6 +20,7 @@
                 <span class="fate-wheel__label" style="@label.Style">@label.Text</span>
             }
         </div>
+        <div class="fate-wheel__hub" aria-hidden="true"></div>
     </div>
 
     <button class="fate-wheel__spin" @onclick="SpinAsync" disabled="@isSpinning">돌리기</button>
@@ -33,7 +35,7 @@
         {
             <li>
                 <span class="fate-wheel__dot" style="background:@item.Color"></span>
-                @item.Name (@item.Weight%)
+                @item.Name
             </li>
         }
     </ul>
