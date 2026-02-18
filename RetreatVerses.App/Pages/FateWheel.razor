@@ -13,7 +13,12 @@
         <div class="fate-wheel__pointer" aria-hidden="true"></div>
         <div class="fate-wheel__wheel"
              style="@WheelStyle"
-             aria-label="운명의 회전판"></div>
+             aria-label="운명의 회전판">
+            @foreach (var label in LabelPositions)
+            {
+                <span class="fate-wheel__label" style="@label.Style">@label.Text</span>
+            }
+        </div>
     </div>
 
     <button class="fate-wheel__spin" @onclick="SpinAsync" disabled="@isSpinning">돌리기</button>
@@ -37,11 +42,11 @@
 @code {
     private readonly IReadOnlyList<WheelItem> Items = new List<WheelItem>
     {
-        new("수호의 요새 7강화", 10, "#ef4444"),
-        new("레이저건 1강화", 35, "#3b82f6"),
-        new("꽝", 13, "#6b7280"),
-        new("공격의 거대광선 7강화", 7, "#f59e0b"),
-        new("수호의 벙커 2강화", 35, "#22c55e")
+        new("수호의 요새 7강화", "요새7강화", 10, "#ef4444"),
+        new("레이저건 1강화", "레이저건 1강화", 35, "#3b82f6"),
+        new("꽝", "꽝", 13, "#6b7280"),
+        new("공격의 거대광선 7강화", "거대광선 7강화", 7, "#f59e0b"),
+        new("수호의 벙커 2강화", "벙커 2강화", 35, "#22c55e")
     };
 
     private bool isSpinning;
@@ -49,6 +54,28 @@
     private double rotationDegrees;
 
     private string WheelStyle => $"transform: rotate({rotationDegrees}deg); background: {BuildWheelBackground()};";
+
+    private IReadOnlyList<LabelInfo> LabelPositions
+    {
+        get
+        {
+            var labels = new List<LabelInfo>();
+            var totalWeight = Items.Sum(i => i.Weight);
+            double cursor = 0;
+            foreach (var item in Items)
+            {
+                var span = GetSliceAngle(item.Weight, totalWeight);
+                var center = cursor + (span / 2.0);
+                var radians = (center - 90.0) * Math.PI / 180.0;
+                var x = 50 + (34 * Math.Cos(radians));
+                var y = 50 + (34 * Math.Sin(radians));
+                labels.Add(new LabelInfo(item.ShortLabel, $"left:{x:F2}%;top:{y:F2}%;"));
+                cursor += span;
+            }
+
+            return labels;
+        }
+    }
 
     private async Task SpinAsync()
     {
@@ -121,7 +148,7 @@
             cursorPercent = nextPercent;
         }
 
-        return $"conic-gradient(from -90deg, {string.Join(", ", slices)})";
+        return $"conic-gradient({string.Join(", ", slices)})";
     }
 
     private static double GetSliceAngle(int weight, int totalWeight)
@@ -129,5 +156,6 @@
         return (weight * 360.0) / totalWeight;
     }
 
-    private sealed record WheelItem(string Name, int Weight, string Color);
+    private sealed record WheelItem(string Name, string ShortLabel, int Weight, string Color);
+    private sealed record LabelInfo(string Text, string Style);
 }
