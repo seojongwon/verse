@@ -13,12 +13,7 @@
         <div class="fate-wheel__pointer" aria-hidden="true"></div>
         <div class="fate-wheel__wheel"
              style="@WheelStyle"
-             aria-label="운명의 회전판">
-            @foreach (var label in LabelPositions)
-            {
-                <span class="fate-wheel__label" style="@label.Style">@label.Text</span>
-            }
-        </div>
+             aria-label="운명의 회전판"></div>
     </div>
 
     <button class="fate-wheel__spin" @onclick="SpinAsync" disabled="@isSpinning">돌리기</button>
@@ -54,28 +49,6 @@
     private double rotationDegrees;
 
     private string WheelStyle => $"transform: rotate({rotationDegrees}deg); background: {BuildWheelBackground()};";
-
-    private IReadOnlyList<LabelInfo> LabelPositions
-    {
-        get
-        {
-            var labels = new List<LabelInfo>();
-            var totalWeight = Items.Sum(i => i.Weight);
-            double cursor = 0;
-            foreach (var item in Items)
-            {
-                var span = GetSliceAngle(item.Weight, totalWeight);
-                var center = cursor + (span / 2.0);
-                var radians = (center - 90.0) * Math.PI / 180.0;
-                var x = 50 + (36 * Math.Cos(radians));
-                var y = 50 + (36 * Math.Sin(radians));
-                labels.Add(new LabelInfo($"{item.Name} {item.Weight}%", $"left:{x:F2}%;top:{y:F2}%;"));
-                cursor += span;
-            }
-
-            return labels;
-        }
-    }
 
     private async Task SpinAsync()
     {
@@ -157,5 +130,4 @@
     }
 
     private sealed record WheelItem(string Name, int Weight, string Color);
-    private sealed record LabelInfo(string Text, string Style);
 }
