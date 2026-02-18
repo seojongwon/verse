@@ -51,14 +51,14 @@
 
 .fate-wheel__pointer {
     position: absolute;
-    top: -2px;
+    top: -8px;
     left: 50%;
     transform: translateX(-50%);
     width: 0;
     height: 0;
     border-left: 16px solid transparent;
     border-right: 16px solid transparent;
-    border-top: 26px solid #111827;
+    border-bottom: 26px solid #111827;
     z-index: 2;
 }
 

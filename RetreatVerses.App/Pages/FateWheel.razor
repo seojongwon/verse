@@ -1,4 +1,6 @@
-@page "/wheel"
+@page "/admin/wheel"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
 
 <section class="fate-wheel">
     <header class="fate-wheel__header">
@@ -58,15 +60,16 @@
         get
         {
             var labels = new List<LabelInfo>();
+            var totalWeight = Items.Sum(i => i.Weight);
             double cursor = 0;
             foreach (var item in Items)
             {
-                var span = item.Weight * 3.6;
+                var span = GetSliceAngle(item.Weight, totalWeight);
                 var center = cursor + (span / 2.0);
                 var radians = (center - 90.0) * Math.PI / 180.0;
                 var x = 50 + (36 * Math.Cos(radians));
                 var y = 50 + (36 * Math.Sin(radians));
-                labels.Add(new LabelInfo(item.Name, $"left:{x:F2}%;top:{y:F2}%;"));
+                labels.Add(new LabelInfo($"{item.Name} {item.Weight}%", $"left:{x:F2}%;top:{y:F2}%;"));
                 cursor += span;
             }
 
@@ -106,7 +109,8 @@
 
     private int PickWeightedIndex()
     {
-        var roll = Random.Shared.Next(100);
+        var totalWeight = Items.Sum(i => i.Weight);
+        var roll = Random.Shared.Next(totalWeight);
         var cumulative = 0;
         for (var i = 0; i < Items.Count; i++)
         {
@@ -122,28 +126,35 @@
 
     private double GetSegmentCenterAngle(int index)
     {
+        var totalWeight = Items.Sum(i => i.Weight);
         double cursor = 0;
         for (var i = 0; i < index; i++)
         {
-            cursor += Items[i].Weight * 3.6;
+            cursor += GetSliceAngle(Items[i].Weight, totalWeight);
         }
 
-        return cursor + (Items[index].Weight * 1.8);
+        return cursor + (GetSliceAngle(Items[index].Weight, totalWeight) / 2.0);
     }
 
     private string BuildWheelBackground()
     {
         var slices = new List<string>();
-        double cursor = 0;
+        double cursorPercent = 0;
+        var totalWeight = Items.Sum(i => i.Weight);
 
         foreach (var item in Items)
         {
-            var next = cursor + (item.Weight * 3.6);
-            slices.Add($"{item.Color} {cursor:F2}deg {next:F2}deg");
-            cursor = next;
+            var nextPercent = cursorPercent + ((item.Weight * 100.0) / totalWeight);
+            slices.Add($"{item.Color} {cursorPercent:F3}% {nextPercent:F3}%");
+            cursorPercent = nextPercent;
         }
 
         return $"conic-gradient(from -90deg, {string.Join(", ", slices)})";
+    }
+
+    private static double GetSliceAngle(int weight, int totalWeight)
+    {
+        return (weight * 360.0) / totalWeight;
     }
 
     private sealed record WheelItem(string Name, int Weight, string Color);
