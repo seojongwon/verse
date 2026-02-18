@@ -75,6 +75,33 @@
     position: relative;
     transition: transform 4.5s cubic-bezier(0.17, 0.67, 0.15, 1);
     z-index: 1;
+    overflow: hidden;
+}
+
+.fate-wheel__wheel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background:
+        repeating-linear-gradient(
+            7deg,
+            rgba(255, 255, 255, 0.16) 0px,
+            rgba(255, 255, 255, 0.16) 3px,
+            rgba(0, 0, 0, 0.06) 3px,
+            rgba(0, 0, 0, 0.06) 7px
+        ),
+        repeating-linear-gradient(
+            96deg,
+            rgba(255, 255, 255, 0.08) 0px,
+            rgba(255, 255, 255, 0.08) 2px,
+            rgba(0, 0, 0, 0.04) 2px,
+            rgba(0, 0, 0, 0.04) 6px
+        );
+    mix-blend-mode: multiply;
+    opacity: 0.45;
+    filter: saturate(1.05);
+    pointer-events: none;
 }
 
 .fate-wheel__wheel::after {
