@@ -9,7 +9,7 @@
         <p class="fate-wheel__subtitle">버튼을 누르면 확률에 따라 보상이 선택됩니다.</p>
     </header>
 
-    <div class="fate-wheel__stage">
+    <div class="fate-wheel__stage @(showFailEffect ? "is-fail" : null)">
         <div class="fate-wheel__pointer" aria-hidden="true"></div>
         <div class="fate-wheel__rim" aria-hidden="true"></div>
         <div class="fate-wheel__wheel"
@@ -21,13 +21,22 @@
             }
         </div>
         <div class="fate-wheel__hub" aria-hidden="true"></div>
+        @if (showCelebration)
+        {
+            @for (var i = 0; i < ConfettiColors.Count; i++)
+            {
+                <span class="fate-wheel__confetti"
+                      style="left:@ConfettiLeft(i);background:@ConfettiColors[i];animation-delay:@ConfettiDelay(i);"
+                      aria-hidden="true"></span>
+            }
+        }
     </div>
 
     <button class="fate-wheel__spin" @onclick="SpinAsync" disabled="@isSpinning">돌리기</button>
 
     @if (!string.IsNullOrWhiteSpace(resultMessage))
     {
-        <p class="fate-wheel__result">결과: @resultMessage</p>
+        <p class="fate-wheel__result @(showFailEffect ? "is-fail" : "is-win")">결과: @resultMessage</p>
     }
 
     <ul class="fate-wheel__legend">
@@ -54,6 +63,12 @@
     private bool isSpinning;
     private string? resultMessage;
     private double rotationDegrees;
+    private bool showCelebration;
+    private bool showFailEffect;
+    private static readonly IReadOnlyList<string> ConfettiColors = new List<string>
+    {
+        "#f43f5e", "#22c55e", "#f59e0b", "#3b82f6", "#a855f7", "#06b6d4", "#eab308", "#ef4444"
+    };
 
     private string WheelStyle => $"transform: rotate({rotationDegrees}deg); background: {BuildWheelBackground()};";
 
@@ -88,6 +103,8 @@
 
         isSpinning = true;
         resultMessage = null;
+        showCelebration = false;
+        showFailEffect = false;
 
         var selectedIndex = PickWeightedIndex();
         var selected = Items[selectedIndex];
@@ -107,6 +124,12 @@
 
         isSpinning = false;
         resultMessage = selected.Name;
+        showFailEffect = string.Equals(selected.Name, "꽝", StringComparison.Ordinal);
+        showCelebration = !showFailEffect;
+
+        await Task.Delay(1500);
+        showCelebration = false;
+        showFailEffect = false;
     }
 
     private int PickWeightedIndex()
@@ -156,6 +179,17 @@
     private static double GetSliceAngle(int weight, int totalWeight)
     {
         return (weight * 360.0) / totalWeight;
+    }
+
+    private static string ConfettiLeft(int index)
+    {
+        var positions = new[] { 8, 16, 24, 34, 44, 56, 67, 78 };
+        return $"{positions[index % positions.Length]}%";
+    }
+
+    private static string ConfettiDelay(int index)
+    {
+        return $"{(index * 0.06):F2}s";
     }
 
     private sealed record WheelItem(string Name, string ShortLabel, int Weight, string Color);
