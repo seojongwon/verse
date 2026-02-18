@@ -1,0 +1,151 @@
+@page "/wheel"
+
+<section class="fate-wheel">
+    <header class="fate-wheel__header">
+        <p class="fate-wheel__eyebrow">이벤트</p>
+        <h3 class="fate-wheel__title">운명의 회전판</h3>
+        <p class="fate-wheel__subtitle">버튼을 누르면 확률에 따라 보상이 선택됩니다.</p>
+    </header>
+
+    <div class="fate-wheel__stage">
+        <div class="fate-wheel__pointer" aria-hidden="true"></div>
+        <div class="fate-wheel__wheel"
+             style="@WheelStyle"
+             aria-label="운명의 회전판">
+            @foreach (var label in LabelPositions)
+            {
+                <span class="fate-wheel__label" style="@label.Style">@label.Text</span>
+            }
+        </div>
+    </div>
+
+    <button class="fate-wheel__spin" @onclick="SpinAsync" disabled="@isSpinning">돌리기</button>
+
+    @if (!string.IsNullOrWhiteSpace(resultMessage))
+    {
+        <p class="fate-wheel__result">결과: @resultMessage</p>
+    }
+
+    <ul class="fate-wheel__legend">
+        @foreach (var item in Items)
+        {
+            <li>
+                <span class="fate-wheel__dot" style="background:@item.Color"></span>
+                @item.Name (@item.Weight%)
+            </li>
+        }
+    </ul>
+</section>
+
+@code {
+    private readonly IReadOnlyList<WheelItem> Items = new List<WheelItem>
+    {
+        new("수호의 요새 7강화", 5, "#ef4444"),
+        new("공격의 거대광선 7강화", 5, "#f97316"),
+        new("수호의 벙커 2강화", 40, "#22c55e"),
+        new("레이저건 1강화", 40, "#3b82f6"),
+        new("꽝", 10, "#64748b")
+    };
+
+    private bool isSpinning;
+    private string? resultMessage;
+    private double rotationDegrees;
+
+    private string WheelStyle => $"transform: rotate({rotationDegrees}deg); background: {BuildWheelBackground()};";
+
+    private IReadOnlyList<LabelInfo> LabelPositions
+    {
+        get
+        {
+            var labels = new List<LabelInfo>();
+            double cursor = 0;
+            foreach (var item in Items)
+            {
+                var span = item.Weight * 3.6;
+                var center = cursor + (span / 2.0);
+                var radians = (center - 90.0) * Math.PI / 180.0;
+                var x = 50 + (36 * Math.Cos(radians));
+                var y = 50 + (36 * Math.Sin(radians));
+                labels.Add(new LabelInfo(item.Name, $"left:{x:F2}%;top:{y:F2}%;"));
+                cursor += span;
+            }
+
+            return labels;
+        }
+    }
+
+    private async Task SpinAsync()
+    {
+        if (isSpinning)
+        {
+            return;
+        }
+
+        isSpinning = true;
+        resultMessage = null;
+
+        var selectedIndex = PickWeightedIndex();
+        var selected = Items[selectedIndex];
+        var selectedCenter = GetSegmentCenterAngle(selectedIndex);
+
+        var current = rotationDegrees % 360;
+        if (current < 0)
+        {
+            current += 360;
+        }
+
+        var target = (360 - selectedCenter) % 360;
+        var delta = (target - current + 360) % 360;
+        rotationDegrees += (360 * 5) + delta;
+
+        await Task.Delay(4600);
+
+        isSpinning = false;
+        resultMessage = selected.Name;
+    }
+
+    private int PickWeightedIndex()
+    {
+        var roll = Random.Shared.Next(100);
+        var cumulative = 0;
+        for (var i = 0; i < Items.Count; i++)
+        {
+            cumulative += Items[i].Weight;
+            if (roll < cumulative)
+            {
+                return i;
+            }
+        }
+
+        return Items.Count - 1;
+    }
+
+    private double GetSegmentCenterAngle(int index)
+    {
+        double cursor = 0;
+        for (var i = 0; i < index; i++)
+        {
+            cursor += Items[i].Weight * 3.6;
+        }
+
+        return cursor + (Items[index].Weight * 1.8);
+    }
+
+    private string BuildWheelBackground()
+    {
+        var slices = new List<string>();
+        double cursor = 0;
+
+        foreach (var item in Items)
+        {
+            var next = cursor + (item.Weight * 3.6);
+            slices.Add($"{item.Color} {cursor:F2}deg {next:F2}deg");
+            cursor = next;
+        }
+
+        return $"conic-gradient(from -90deg, {string.Join(", ", slices)})";
+    }
+
+    private sealed record WheelItem(string Name, int Weight, string Color);
+    private sealed record LabelInfo(string Text, string Style);
+}
