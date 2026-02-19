@@ -127,7 +127,7 @@
     transform: translate(-50%, -50%) rotate(var(--label-rotation, 0deg));
     transition: transform 0.22s ease-out;
     color: #ffffff;
-    font-size: 0.96rem;
+    font-size: 1.08rem;
     font-weight: 700;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
     text-align: center;
@@ -198,7 +198,7 @@
 
 @media (max-width: 640px) {
     .fate-wheel__label {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
         width: 88px;
     }
 }
