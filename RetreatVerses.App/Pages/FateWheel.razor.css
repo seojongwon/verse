@@ -126,7 +126,7 @@
     position: absolute;
     transform: translate(-50%, -50%);
     color: #ffffff;
-    font-size: 0.88rem;
+    font-size: 0.96rem;
     font-weight: 700;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
     text-align: center;
@@ -197,7 +197,7 @@
 
 @media (max-width: 640px) {
     .fate-wheel__label {
-        font-size: 0.74rem;
+        font-size: 0.8rem;
         width: 88px;
     }
 }
