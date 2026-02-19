@@ -124,7 +124,8 @@
 
 .fate-wheel__label {
     position: absolute;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) rotate(var(--label-rotation, 0deg));
+    transition: transform 0.22s ease-out;
     color: #ffffff;
     font-size: 0.96rem;
     font-weight: 700;

@@ -54,6 +54,7 @@
     private bool isSpinning;
     private string? resultMessage;
     private double rotationDegrees;
+    private double labelRotationDegrees;
 
     private string WheelStyle => $"transform: rotate({rotationDegrees}deg); background: {BuildWheelBackground()};";
 
@@ -71,7 +72,7 @@
                 var radians = (center - 90.0) * Math.PI / 180.0;
                 var x = 50 + (34 * Math.Cos(radians));
                 var y = 50 + (34 * Math.Sin(radians));
-                labels.Add(new LabelInfo(item.ShortLabel, $"left:{x:F2}%;top:{y:F2}%;"));
+                labels.Add(new LabelInfo(item.ShortLabel, $"left:{x:F2}%;top:{y:F2}%;--label-rotation:{labelRotationDegrees:F2}deg;"));
                 cursor += span;
             }
 
@@ -88,6 +89,7 @@
 
         isSpinning = true;
         resultMessage = null;
+        labelRotationDegrees = 0;
 
         var selectedIndex = PickWeightedIndex();
         var selected = Items[selectedIndex];
@@ -105,8 +107,15 @@
 
         await Task.Delay(4600);
 
+        var normalized = rotationDegrees % 360;
+        if (normalized < 0)
+        {
+            normalized += 360;
+        }
+
         isSpinning = false;
         resultMessage = selected.Name;
+        labelRotationDegrees = -normalized;
     }
 
     private int PickWeightedIndex()
