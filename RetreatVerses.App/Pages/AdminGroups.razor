@@ -87,8 +87,8 @@ else
                     <th class="text-start align-middle">조 이름</th>
                     <th class="text-start align-middle">비밀번호</th>
                     <th class="text-start align-middle">수호단어</th>
-                    <th class="text-start align-middle star-col">수호의 별</th>
-                    <th class="text-start align-middle star-col">공격의 별</th>
+                    <th class="text-start align-middle star-col">수호 강화레벨</th>
+                    <th class="text-start align-middle star-col">공격 강화레벨</th>
                     <th class="text-start align-middle star-col">수호실패</th>
                     <th class="text-start align-middle">작업/링크</th>
                     @if (showGroupId)
@@ -233,7 +233,7 @@ else
                                    checked="@(selectedRewardType == RewardTypeGuard)"
                                    @onchange="() => selectedRewardType = RewardTypeGuard"
                                    id="reward-guard" />
-                            <label class="form-check-label" for="reward-guard">수호의 별 (시스템 저장)</label>
+                            <label class="form-check-label" for="reward-guard">수호 강화레벨 (시스템 저장)</label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="rewardType"
@@ -241,7 +241,7 @@ else
                                    checked="@(selectedRewardType == RewardTypeAttack)"
                                    @onchange="() => selectedRewardType = RewardTypeAttack"
                                    id="reward-attack" />
-                            <label class="form-check-label" for="reward-attack">공격의 별 (칩 지급)</label>
+                            <label class="form-check-label" for="reward-attack">공격 강화레벨 (칩 지급)</label>
                         </div>
                     </div>
                     <div class="mt-2 d-flex flex-wrap gap-2 align-items-center">
@@ -539,13 +539,13 @@ else
 
         if (!int.TryParse(GetGuardStarInput(groupId), out desiredGuard) || desiredGuard < 0)
         {
-            errorMessage = "수호의 별은 0 이상으로 입력해 주세요.";
+            errorMessage = "수호 강화레벨은 0 이상으로 입력해 주세요.";
             return false;
         }
 
         if (!int.TryParse(GetAttackStarInput(groupId), out desiredAttack) || desiredAttack < 0)
         {
-            errorMessage = "공격의 별은 0 이상으로 입력해 주세요.";
+            errorMessage = "공격 강화레벨은 0 이상으로 입력해 주세요.";
             return false;
         }
 
@@ -773,8 +773,8 @@ else
         await DataStore.AddQuizRewardAsync(guardWordGroupId.Value, activeQuiz.Id, responseSeconds, selectedRewardType, starCount);
 
         quizRewardMessage = selectedRewardType == RewardTypeGuard
-            ? $"수호의 별 {starCount}개를 저장했습니다."
-            : $"공격의 별 {starCount}개 지급을 기록했습니다.";
+            ? $"수호 강화레벨 {starCount}을 저장했습니다."
+            : $"공격 강화레벨 {starCount} 지급을 기록했습니다.";
     }
 
     private static int CalculateStarCount(int responseSeconds, string rewardType)
