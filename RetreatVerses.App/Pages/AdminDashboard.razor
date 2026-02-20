@@ -11,155 +11,6 @@
 }
 else
 {
-    <div class="row g-3 mb-4">
-        <div class="col-md-6">
-            <div class="card dashboard-card">
-                <div class="card-body">
-                    <h5 class="card-title">말씀 많이 등록된 조</h5>
-                    <ul class="list-unstyled mb-0">
-                        @foreach (var item in topByRegistrations)
-                        {
-                            <li class="d-flex justify-content-between">
-                                <span>@item.GroupName</span>
-                                <span class="text-muted">@item.Total</span>
-                            </li>
-                        }
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card dashboard-card">
-                <div class="card-body">
-                    <h5 class="card-title">말씀 사용 많은 조</h5>
-                    <ul class="list-unstyled mb-0">
-                        @foreach (var item in topByUsed)
-                        {
-                            <li class="d-flex justify-content-between">
-                                <span>@item.GroupName</span>
-                                <span class="text-muted">@item.Used</span>
-                            </li>
-                        }
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card dashboard-card">
-                <div class="card-body">
-                    <h5 class="card-title">말씀 암송 많은 조</h5>
-                    <ul class="list-unstyled mb-0">
-                        @foreach (var item in topByRecited)
-                        {
-                            <li class="d-flex justify-content-between">
-                                <span>@item.GroupName</span>
-                                <span class="text-muted">@item.Recited</span>
-                            </li>
-                        }
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="table-responsive mb-4">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>조 이름</th>
-                    <th>등록</th>
-                    <th>사용</th>
-                    <th>암송</th>
-                    <th>미처리</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in stats)
-                {
-                    <tr>
-                        <td>@item.GroupName</td>
-                        <td>@item.Total</td>
-                        <td>@item.Used</td>
-                        <td>@item.Recited</td>
-                        <td>@item.Pending</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-
-    <div class="row g-3">
-        <div class="col-md-6">
-            <h5 class="mb-3">사용별 순위</h5>
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>조 이름</th>
-                            <th>사용</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in topByUsed)
-                        {
-                            <tr>
-                                <td>@item.GroupName</td>
-                                <td>@item.Used</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-3 mt-1">
-        <div class="col-md-6">
-            <h5 class="mb-3">암송별 순위</h5>
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>조 이름</th>
-                            <th>암송</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in topByRecited)
-                        {
-                            <tr>
-                                <td>@item.GroupName</td>
-                                <td>@item.Recited</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <h5 class="mb-3">수호실패 많은 조</h5>
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>조 이름</th>
-                            <th>수호실패</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in topByGuardFailures)
-                        {
-                            <tr>
-                                <td>@item.GroupName</td>
-                                <td>@item.Total</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
     <div class="mt-4">
         <h5 class="mb-3">종합 순위</h5>
         <small class="text-muted d-block mb-2">
@@ -169,14 +20,14 @@ else
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th>최종순위</th>
-                        <th>조 이름</th>
-                        <th>등록 순위</th>
-                        <th>암송 순위</th>
-                        <th>사용적음 순위</th>
-                        <th>수호실패적음 순위</th>
-                        <th>1~3 가중점수</th>
-                        <th>최종점수</th>
+                        <th><button type="button" class="btn btn-link p-0 text-decoration-none" @onclick="() => ToggleOverallSort(nameof(OverallRank.FinalRank))">최종순위</button></th>
+                        <th><button type="button" class="btn btn-link p-0 text-decoration-none" @onclick="() => ToggleOverallSort(nameof(OverallRank.GroupName))">조 이름</button></th>
+                        <th><button type="button" class="btn btn-link p-0 text-decoration-none" @onclick="() => ToggleOverallSort(nameof(OverallRank.RegistrationRank))">등록 순위</button></th>
+                        <th><button type="button" class="btn btn-link p-0 text-decoration-none" @onclick="() => ToggleOverallSort(nameof(OverallRank.RecitedRank))">암송 순위</button></th>
+                        <th><button type="button" class="btn btn-link p-0 text-decoration-none" @onclick="() => ToggleOverallSort(nameof(OverallRank.UsedLeastRank))">사용적음 순위</button></th>
+                        <th><button type="button" class="btn btn-link p-0 text-decoration-none" @onclick="() => ToggleOverallSort(nameof(OverallRank.GuardFailureLeastRank))">수호실패적음 순위</button></th>
+                        <th><button type="button" class="btn btn-link p-0 text-decoration-none" @onclick="() => ToggleOverallSort(nameof(OverallRank.PreFinalScore))">1~3 가중점수</button></th>
+                        <th><button type="button" class="btn btn-link p-0 text-decoration-none" @onclick="() => ToggleOverallSort(nameof(OverallRank.FinalScore))">최종점수</button></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -347,16 +198,14 @@ else
 
 @code {
     private List<GroupStat> stats = new List<GroupStat>();
-    private List<GroupStat> topByRegistrations = new List<GroupStat>();
-    private List<GroupStat> topByUsed = new List<GroupStat>();
-    private List<GroupStat> topByRecited = new List<GroupStat>();
     private List<GuardSummary> guardSummaries = new List<GuardSummary>();
-    private List<GroupStat> topByGuardFailures = new List<GroupStat>();
     private List<MetricRank> rankByRegistrations = new List<MetricRank>();
     private List<MetricRank> rankByRecited = new List<MetricRank>();
     private List<MetricRank> rankByUsedLeast = new List<MetricRank>();
     private List<MetricRank> rankByGuardFailureLeast = new List<MetricRank>();
     private List<OverallRank> overallRankings = new List<OverallRank>();
+    private string overallSortColumn = nameof(OverallRank.FinalRank);
+    private bool overallSortAscending = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -436,40 +285,6 @@ else
             .OrderBy(x => x.GroupName)
             .ToList();
 
-        topByRegistrations = stats
-            .OrderByDescending(s => s.Total)
-            .ThenBy(s => s.GroupName)
-            .Take(5)
-            .ToList();
-
-        topByUsed = stats
-            .OrderByDescending(s => s.Used)
-            .ThenBy(s => s.GroupName)
-            .Take(5)
-            .ToList();
-
-        topByRecited = stats
-            .OrderByDescending(s => s.Recited)
-            .ThenBy(s => s.GroupName)
-            .Take(5)
-            .ToList();
-
-        topByGuardFailures = groups
-            .Select(group =>
-            {
-                var total = guardFailureTotals.TryGetValue(group.Id, out var failure) ? failure : 0;
-                return new GroupStat
-                {
-                    GroupId = group.Id,
-                    GroupName = group.Name,
-                    Total = total
-                };
-            })
-            .OrderByDescending(s => s.Total)
-            .ThenBy(s => s.GroupName)
-            .Take(5)
-            .ToList();
-
         rankByRegistrations = BuildMetricRank(
             stats.Select(s => (s.GroupId, s.GroupName, s.Total)),
             higherIsBetter: true);
@@ -530,6 +345,57 @@ else
         {
             overallRankings[i].FinalRank = i + 1;
         }
+
+        ApplyOverallSort();
+    }
+
+    private void ToggleOverallSort(string column)
+    {
+        if (string.Equals(overallSortColumn, column, StringComparison.Ordinal))
+        {
+            overallSortAscending = !overallSortAscending;
+        }
+        else
+        {
+            overallSortColumn = column;
+            overallSortAscending = string.Equals(column, nameof(OverallRank.FinalRank), StringComparison.Ordinal)
+                || string.Equals(column, nameof(OverallRank.GroupName), StringComparison.Ordinal);
+        }
+
+        ApplyOverallSort();
+    }
+
+    private void ApplyOverallSort()
+    {
+        var query = overallSortColumn switch
+        {
+            nameof(OverallRank.GroupName) => overallSortAscending
+                ? overallRankings.OrderBy(x => x.GroupName)
+                : overallRankings.OrderByDescending(x => x.GroupName),
+            nameof(OverallRank.RegistrationRank) => overallSortAscending
+                ? overallRankings.OrderBy(x => x.RegistrationRank).ThenBy(x => x.GroupName)
+                : overallRankings.OrderByDescending(x => x.RegistrationRank).ThenBy(x => x.GroupName),
+            nameof(OverallRank.RecitedRank) => overallSortAscending
+                ? overallRankings.OrderBy(x => x.RecitedRank).ThenBy(x => x.GroupName)
+                : overallRankings.OrderByDescending(x => x.RecitedRank).ThenBy(x => x.GroupName),
+            nameof(OverallRank.UsedLeastRank) => overallSortAscending
+                ? overallRankings.OrderBy(x => x.UsedLeastRank).ThenBy(x => x.GroupName)
+                : overallRankings.OrderByDescending(x => x.UsedLeastRank).ThenBy(x => x.GroupName),
+            nameof(OverallRank.GuardFailureLeastRank) => overallSortAscending
+                ? overallRankings.OrderBy(x => x.GuardFailureLeastRank).ThenBy(x => x.GroupName)
+                : overallRankings.OrderByDescending(x => x.GuardFailureLeastRank).ThenBy(x => x.GroupName),
+            nameof(OverallRank.PreFinalScore) => overallSortAscending
+                ? overallRankings.OrderBy(x => x.PreFinalScore).ThenBy(x => x.GroupName)
+                : overallRankings.OrderByDescending(x => x.PreFinalScore).ThenBy(x => x.GroupName),
+            nameof(OverallRank.FinalScore) => overallSortAscending
+                ? overallRankings.OrderBy(x => x.FinalScore).ThenBy(x => x.GroupName)
+                : overallRankings.OrderByDescending(x => x.FinalScore).ThenBy(x => x.GroupName),
+            _ => overallSortAscending
+                ? overallRankings.OrderBy(x => x.FinalRank).ThenBy(x => x.GroupName)
+                : overallRankings.OrderByDescending(x => x.FinalRank).ThenBy(x => x.GroupName)
+        };
+
+        overallRankings = query.ToList();
     }
 
     private static List<MetricRank> BuildMetricRank(IEnumerable<(Guid GroupId, string GroupName, int Value)> source, bool higherIsBetter)
