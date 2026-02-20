@@ -74,6 +74,14 @@
             </div>
 
             <div class="user-dashboard__section">
+                <p class="user-dashboard__section-title">공격 강화레벨</p>
+                <div class="user-dashboard__metric">
+                    <span class="user-dashboard__label">공격 강화레벨</span>
+                    <strong class="user-dashboard__value">@attackStarTotal</strong>
+                </div>
+            </div>
+
+            <div class="user-dashboard__section">
                 <p class="user-dashboard__section-title">수호실패</p>
                 <div class="user-dashboard__metric">
                     <span class="user-dashboard__label">수호실패</span>
@@ -89,6 +97,7 @@
     private List<PurposeCount> purposeCounts = new List<PurposeCount>();
     private GuardWordEntry? latestGuardWord;
     private int guardStarTotal;
+    private int attackStarTotal;
     private int guardFailureTotal;
     private string groupNameInput = string.Empty;
     private string groupPasswordInput = string.Empty;
@@ -164,6 +173,9 @@
         var rewards = await DataStore.GetQuizRewardsAsync();
         guardStarTotal = rewards
             .Where(r => r.GroupId == group.Id && string.Equals(r.RewardType, "guard", StringComparison.OrdinalIgnoreCase))
+            .Sum(r => r.StarCount);
+        attackStarTotal = rewards
+            .Where(r => r.GroupId == group.Id && string.Equals(r.RewardType, "attack", StringComparison.OrdinalIgnoreCase))
             .Sum(r => r.StarCount);
 
         var failures = await DataStore.GetGuardFailuresAsync();
