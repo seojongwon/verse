@@ -142,8 +142,8 @@
         isCharging = false;
 
         var chargeRatio = chargePercent / 100.0;
-        spinDurationMs = (int)Math.Round(5200 - (chargeRatio * 3400)); // Full charge -> faster and shorter overall spin.
-        var fullSpins = 6;
+        spinDurationMs = (int)Math.Round(4200 + (chargeRatio * 900)); // Full charge -> slightly longer, not abruptly short.
+        var fullSpins = 3 + (int)Math.Round(chargeRatio * 9); // Full charge -> much more turns, clearly faster feel.
         await SpinAsync(fullSpins, spinDurationMs);
     }
 
