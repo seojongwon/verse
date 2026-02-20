@@ -215,6 +215,7 @@ else
             {
                 <p class="text-muted mb-2">랜덤 문제</p>
                 <p>@activeQuiz.Question</p>
+                <p class="text-muted mb-3">정답: @activeQuiz.Answer</p>
                 <div class="d-flex flex-wrap gap-2 align-items-center">
                     <span class="fw-bold fs-5">타이머: @timerDisplay</span>
                     <button class="btn btn-outline-primary" @onclick="StartTimer" disabled="@timerRunning">시작</button>
