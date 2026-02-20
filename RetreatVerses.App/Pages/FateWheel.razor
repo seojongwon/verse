@@ -77,7 +77,7 @@
     private int spinDurationMs = 4600;
     private CancellationTokenSource? chargeCts;
 
-    private string WheelStyle => $"transform: rotate({rotationDegrees}deg); background: {BuildWheelBackground()}; transition: transform {spinDurationMs}ms cubic-bezier(0.08, 0.82, 0.14, 1);";
+    private string WheelStyle => $"transform: rotate({rotationDegrees}deg); background: {BuildWheelBackground()}; transition: transform {spinDurationMs}ms cubic-bezier(0.06, 0.9, 0.18, 1);";
 
     private IReadOnlyList<LabelInfo> LabelPositions
     {
@@ -143,8 +143,8 @@
         isCharging = false;
 
         var chargeRatio = chargePercent / 100.0;
-        spinDurationMs = (int)Math.Round(4200 + (chargeRatio * 900)); // Full charge -> slightly longer, not abruptly short.
-        var fullSpins = 3 + (int)Math.Round(chargeRatio * 9); // Full charge -> much more turns, clearly faster feel.
+        spinDurationMs = (int)Math.Round(5600 + (chargeRatio * 2600)); // Longer overall spin with slower finish.
+        var fullSpins = 4 + (int)Math.Round(chargeRatio * 10);
         await SpinAsync(fullSpins, spinDurationMs);
     }
 
@@ -171,9 +171,10 @@
         resultMessage = null;
         labelRotationDegrees = 0;
 
-        var selectedIndex = PickWeightedIndex();
+        // Stop at any point inside a segment instead of always segment center.
+        var stopAngle = Random.Shared.NextDouble() * 360.0;
+        var selectedIndex = GetSegmentIndexByAngle(stopAngle);
         var selected = Items[selectedIndex];
-        var selectedCenter = GetSegmentCenterAngle(selectedIndex);
 
         var current = rotationDegrees % 360;
         if (current < 0)
@@ -181,7 +182,7 @@
             current += 360;
         }
 
-        var target = (360 - selectedCenter) % 360;
+        var target = (360 - stopAngle) % 360;
         var delta = (target - current + 360) % 360;
         rotationDegrees += (360 * fullSpins) + delta;
 
@@ -199,33 +200,26 @@
         chargePercent = 0;
     }
 
-    private int PickWeightedIndex()
+    private int GetSegmentIndexByAngle(double angle)
     {
         var totalWeight = Items.Sum(i => i.Weight);
-        var roll = Random.Shared.Next(1, totalWeight + 1);
-        var cumulative = 0;
+        var normalized = angle % 360;
+        if (normalized < 0)
+        {
+            normalized += 360;
+        }
+
+        double cursor = 0;
         for (var i = 0; i < Items.Count; i++)
         {
-            cumulative += Items[i].Weight;
-            if (roll <= cumulative)
+            cursor += GetSliceAngle(Items[i].Weight, totalWeight);
+            if (normalized < cursor)
             {
                 return i;
             }
         }
 
         return Items.Count - 1;
-    }
-
-    private double GetSegmentCenterAngle(int index)
-    {
-        var totalWeight = Items.Sum(i => i.Weight);
-        double cursor = 0;
-        for (var i = 0; i < index; i++)
-        {
-            cursor += GetSliceAngle(Items[i].Weight, totalWeight);
-        }
-
-        return cursor + (GetSliceAngle(Items[index].Weight, totalWeight) / 2.0);
     }
 
     private string BuildWheelBackground()

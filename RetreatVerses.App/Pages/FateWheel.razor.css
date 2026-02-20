@@ -169,12 +169,12 @@
 
 .fate-wheel__charge {
     width: min(86vw, 420px);
-    margin-top: 0.25rem;
+    margin-top: 1rem;
 }
 
 .fate-wheel__charge-track {
     width: 100%;
-    height: 10px;
+    height: 14px;
     border-radius: 999px;
     background: rgba(148, 163, 184, 0.35);
     overflow: hidden;
