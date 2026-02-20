@@ -161,6 +161,143 @@ else
     </div>
 
     <div class="mt-4">
+        <h5 class="mb-3">종합 순위</h5>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>최종순위</th>
+                        <th>조 이름</th>
+                        <th>등록 순위</th>
+                        <th>암송 순위</th>
+                        <th>사용적음 순위</th>
+                        <th>수호실패적음 순위</th>
+                        <th>1~3 가중점수</th>
+                        <th>최종점수</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in overallRankings)
+                    {
+                        <tr>
+                            <td>@item.FinalRank</td>
+                            <td>@item.GroupName</td>
+                            <td>@item.RegistrationRank</td>
+                            <td>@item.RecitedRank</td>
+                            <td>@item.UsedLeastRank</td>
+                            <td>@item.GuardFailureLeastRank</td>
+                            <td>@item.PreFinalScore.ToString("0.00")</td>
+                            <td>@item.FinalScore.ToString("0.00")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <small class="text-muted d-block mt-1">
+            계산식: (등록순위×0.30 + 암송순위×0.50 + 사용적음순위×0.20) × 0.60 + 수호실패적음순위 × 0.40
+        </small>
+    </div>
+
+    <div class="row g-3 mt-2">
+        <div class="col-md-6">
+            <h5 class="mb-3">말씀 등록 순위</h5>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>순위</th>
+                            <th>조 이름</th>
+                            <th>등록 수</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in rankByRegistrations)
+                        {
+                            <tr>
+                                <td>@item.Rank</td>
+                                <td>@item.GroupName</td>
+                                <td>@item.Value</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h5 class="mb-3">암송 순위</h5>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>순위</th>
+                            <th>조 이름</th>
+                            <th>암송 수</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in rankByRecited)
+                        {
+                            <tr>
+                                <td>@item.Rank</td>
+                                <td>@item.GroupName</td>
+                                <td>@item.Value</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h5 class="mb-3">말씀사용 적은 순위</h5>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>순위</th>
+                            <th>조 이름</th>
+                            <th>사용 수</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in rankByUsedLeast)
+                        {
+                            <tr>
+                                <td>@item.Rank</td>
+                                <td>@item.GroupName</td>
+                                <td>@item.Value</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h5 class="mb-3">수호실패 적은 순위</h5>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>순위</th>
+                            <th>조 이름</th>
+                            <th>수호실패 수</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in rankByGuardFailureLeast)
+                        {
+                            <tr>
+                                <td>@item.Rank</td>
+                                <td>@item.GroupName</td>
+                                <td>@item.Value</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
         <h5 class="mb-3">조별 강화 현황</h5>
         <div class="table-responsive">
             <table class="table table-striped">
@@ -208,6 +345,11 @@ else
     private List<GroupStat> topByRecited = new List<GroupStat>();
     private List<GuardSummary> guardSummaries = new List<GuardSummary>();
     private List<GroupStat> topByGuardFailures = new List<GroupStat>();
+    private List<MetricRank> rankByRegistrations = new List<MetricRank>();
+    private List<MetricRank> rankByRecited = new List<MetricRank>();
+    private List<MetricRank> rankByUsedLeast = new List<MetricRank>();
+    private List<MetricRank> rankByGuardFailureLeast = new List<MetricRank>();
+    private List<OverallRank> overallRankings = new List<OverallRank>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -226,6 +368,7 @@ else
                 var total = groupRegistrations.Count;
                 return new GroupStat
                 {
+                    GroupId = group.Id,
                     GroupName = group.Name,
                     Total = total,
                     Used = used,
@@ -310,6 +453,7 @@ else
                 var total = guardFailureTotals.TryGetValue(group.Id, out var failure) ? failure : 0;
                 return new GroupStat
                 {
+                    GroupId = group.Id,
                     GroupName = group.Name,
                     Total = total
                 };
@@ -318,10 +462,97 @@ else
             .ThenBy(s => s.GroupName)
             .Take(5)
             .ToList();
+
+        rankByRegistrations = BuildMetricRank(
+            stats.Select(s => (s.GroupId, s.GroupName, s.Total)),
+            higherIsBetter: true);
+        rankByRecited = BuildMetricRank(
+            stats.Select(s => (s.GroupId, s.GroupName, s.Recited)),
+            higherIsBetter: true);
+        rankByUsedLeast = BuildMetricRank(
+            stats.Select(s => (s.GroupId, s.GroupName, s.Used)),
+            higherIsBetter: false);
+        rankByGuardFailureLeast = BuildMetricRank(
+            groups.Select(g =>
+            {
+                var failure = guardFailureTotals.TryGetValue(g.Id, out var value) ? value : 0;
+                return (g.Id, g.Name, failure);
+            }),
+            higherIsBetter: false);
+
+        var registrationRankMap = rankByRegistrations.ToDictionary(x => x.GroupId, x => x.Rank);
+        var recitedRankMap = rankByRecited.ToDictionary(x => x.GroupId, x => x.Rank);
+        var usedLeastRankMap = rankByUsedLeast.ToDictionary(x => x.GroupId, x => x.Rank);
+        var failureLeastRankMap = rankByGuardFailureLeast.ToDictionary(x => x.GroupId, x => x.Rank);
+
+        overallRankings = groups
+            .Select(group =>
+            {
+                var registrationRank = registrationRankMap.TryGetValue(group.Id, out var reg) ? reg : groups.Count;
+                var recitedRank = recitedRankMap.TryGetValue(group.Id, out var rec) ? rec : groups.Count;
+                var usedLeastRank = usedLeastRankMap.TryGetValue(group.Id, out var used) ? used : groups.Count;
+                var failureLeastRank = failureLeastRankMap.TryGetValue(group.Id, out var fail) ? fail : groups.Count;
+
+                var preFinalScore = (registrationRank * 0.30) + (recitedRank * 0.50) + (usedLeastRank * 0.20);
+                var finalScore = (preFinalScore * 0.60) + (failureLeastRank * 0.40);
+
+                return new OverallRank
+                {
+                    GroupId = group.Id,
+                    GroupName = group.Name,
+                    RegistrationRank = registrationRank,
+                    RecitedRank = recitedRank,
+                    UsedLeastRank = usedLeastRank,
+                    GuardFailureLeastRank = failureLeastRank,
+                    PreFinalScore = preFinalScore,
+                    FinalScore = finalScore
+                };
+            })
+            .OrderBy(x => x.FinalScore)
+            .ThenBy(x => x.PreFinalScore)
+            .ThenBy(x => x.GroupName)
+            .ToList();
+
+        for (var i = 0; i < overallRankings.Count; i++)
+        {
+            overallRankings[i].FinalRank = i + 1;
+        }
+    }
+
+    private static List<MetricRank> BuildMetricRank(IEnumerable<(Guid GroupId, string GroupName, int Value)> source, bool higherIsBetter)
+    {
+        var ordered = higherIsBetter
+            ? source.OrderByDescending(x => x.Value).ThenBy(x => x.GroupName).ToList()
+            : source.OrderBy(x => x.Value).ThenBy(x => x.GroupName).ToList();
+
+        var result = new List<MetricRank>(ordered.Count);
+        var currentRank = 0;
+        int? previousValue = null;
+
+        for (var i = 0; i < ordered.Count; i++)
+        {
+            var item = ordered[i];
+            if (previousValue == null || previousValue.Value != item.Value)
+            {
+                currentRank = i + 1;
+                previousValue = item.Value;
+            }
+
+            result.Add(new MetricRank
+            {
+                GroupId = item.GroupId,
+                GroupName = item.GroupName,
+                Value = item.Value,
+                Rank = currentRank
+            });
+        }
+
+        return result;
     }
 
     private sealed class GroupStat
     {
+        public Guid GroupId { get; set; }
         public string GroupName { get; set; } = string.Empty;
         public int Total { get; set; }
         public int Used { get; set; }
@@ -345,5 +576,26 @@ else
         public int AttackTotal { get; set; }
         public int FailureTotal { get; set; }
         public DateTime? CreatedAt { get; set; }
+    }
+
+    private sealed class MetricRank
+    {
+        public Guid GroupId { get; set; }
+        public string GroupName { get; set; } = string.Empty;
+        public int Value { get; set; }
+        public int Rank { get; set; }
+    }
+
+    private sealed class OverallRank
+    {
+        public Guid GroupId { get; set; }
+        public string GroupName { get; set; } = string.Empty;
+        public int RegistrationRank { get; set; }
+        public int RecitedRank { get; set; }
+        public int UsedLeastRank { get; set; }
+        public int GuardFailureLeastRank { get; set; }
+        public double PreFinalScore { get; set; }
+        public double FinalScore { get; set; }
+        public int FinalRank { get; set; }
     }
 }
