@@ -1,6 +1,8 @@
 @page "/admin/wheel"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Web
+@using System.Threading
 
 <section class="fate-wheel">
     <header class="fate-wheel__header">
@@ -23,7 +25,20 @@
         <div class="fate-wheel__hub" aria-hidden="true"></div>
     </div>
 
-    <button class="fate-wheel__spin" @onclick="SpinAsync" disabled="@isSpinning">돌리기</button>
+    <div class="fate-wheel__charge">
+        <div class="fate-wheel__charge-label">게이지 @($"{chargePercent:0}")%</div>
+        <div class="fate-wheel__charge-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@chargePercent">
+            <div class="fate-wheel__charge-fill" style="width:@($"{chargePercent:0}%")"></div>
+        </div>
+    </div>
+
+    <button class="fate-wheel__spin"
+            @onpointerdown="StartCharge"
+            @onpointerup="ReleaseSpinAsync"
+            @onpointercancel="CancelCharge"
+            disabled="@isSpinning">
+        @(isCharging ? "충전 중..." : "길게 눌러 돌리기")
+    </button>
 
     @if (!string.IsNullOrWhiteSpace(resultMessage))
     {
@@ -54,11 +69,15 @@
     };
 
     private bool isSpinning;
+    private bool isCharging;
     private string? resultMessage;
     private double rotationDegrees;
     private double labelRotationDegrees;
+    private double chargePercent;
+    private int spinDurationMs = 4600;
+    private CancellationTokenSource? chargeCts;
 
-    private string WheelStyle => $"transform: rotate({rotationDegrees}deg); background: {BuildWheelBackground()};";
+    private string WheelStyle => $"transform: rotate({rotationDegrees}deg); background: {BuildWheelBackground()}; transition-duration: {spinDurationMs}ms;";
 
     private IReadOnlyList<LabelInfo> LabelPositions
     {
@@ -82,7 +101,66 @@
         }
     }
 
-    private async Task SpinAsync()
+    private void StartCharge(PointerEventArgs e)
+    {
+        if (isSpinning || isCharging)
+        {
+            return;
+        }
+
+        isCharging = true;
+        resultMessage = null;
+        chargePercent = 0;
+        chargeCts?.Cancel();
+        chargeCts = new CancellationTokenSource();
+        _ = RunChargeLoopAsync(chargeCts.Token);
+    }
+
+    private async Task RunChargeLoopAsync(CancellationToken token)
+    {
+        try
+        {
+            while (!token.IsCancellationRequested && chargePercent < 100)
+            {
+                await Task.Delay(80, token);
+                chargePercent = Math.Min(100, chargePercent + 4);
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private async Task ReleaseSpinAsync(PointerEventArgs e)
+    {
+        if (!isCharging || isSpinning)
+        {
+            return;
+        }
+
+        chargeCts?.Cancel();
+        isCharging = false;
+
+        var chargeRatio = chargePercent / 100.0;
+        spinDurationMs = (int)Math.Round(5200 - (chargeRatio * 2800)); // Full charge -> faster spin.
+        var fullSpins = 4 + (int)Math.Round(chargeRatio * 4);
+        await SpinAsync(fullSpins, spinDurationMs);
+    }
+
+    private void CancelCharge(PointerEventArgs e)
+    {
+        if (!isCharging || isSpinning)
+        {
+            return;
+        }
+
+        chargeCts?.Cancel();
+        isCharging = false;
+        chargePercent = 0;
+    }
+
+    private async Task SpinAsync(int fullSpins, int durationMs)
     {
         if (isSpinning)
         {
@@ -105,9 +183,9 @@
 
         var target = (360 - selectedCenter) % 360;
         var delta = (target - current + 360) % 360;
-        rotationDegrees += (360 * 5) + delta;
+        rotationDegrees += (360 * fullSpins) + delta;
 
-        await Task.Delay(4600);
+        await Task.Delay(durationMs + 100);
 
         var normalized = rotationDegrees % 360;
         if (normalized < 0)
@@ -118,6 +196,7 @@
         isSpinning = false;
         resultMessage = selected.Name;
         labelRotationDegrees = -normalized;
+        chargePercent = 0;
     }
 
     private int PickWeightedIndex()
