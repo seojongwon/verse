@@ -196,7 +196,6 @@
     private bool isAuthorizedGroup;
     private const string PasswordCookiePrefix = "rv_group_pw_";
     private const string LastGroupCookieKey = "rv_last_group_name";
-    private const string PilgrimPurpose = "천로역정";
     private const string GuardPurpose = "수호용";
     private static readonly IReadOnlyList<UseOption> UseOptions = new List<UseOption>
     {
@@ -451,21 +450,10 @@
         FilterAvailable();
     }
 
-    private bool IsMultiSelectMode => IsPilgrimOnlySelection();
-
-    private bool IsPilgrimOnlySelection()
-    {
-        var allowed = GetAllowedTypes();
-        return allowed.Count == 1 && string.Equals(allowed[0], PilgrimPurpose, StringComparison.OrdinalIgnoreCase);
-    }
+    private bool IsMultiSelectMode => true;
 
     private void ToggleSelection(Guid verseId, ChangeEventArgs e)
     {
-        if (!IsMultiSelectMode)
-        {
-            return;
-        }
-
         var isChecked = e.Value is bool boolValue
             ? boolValue
             : string.Equals(e.Value?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
@@ -484,12 +472,6 @@
 
     private void SyncSelection()
     {
-        if (!IsMultiSelectMode)
-        {
-            selectedVerseIds.Clear();
-            return;
-        }
-
         var availableIds = available.Select(v => v.VerseId).ToHashSet();
         selectedVerseIds.RemoveWhere(id => !availableIds.Contains(id));
     }
