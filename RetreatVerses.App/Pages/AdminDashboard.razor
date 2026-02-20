@@ -197,7 +197,7 @@ else
             </table>
         </div>
         <small class="text-muted d-block mt-1">
-            계산식: (등록순위×0.30 + 암송순위×0.50 + 사용적음순위×0.20) × 0.60 + 수호실패적음순위 × 0.40
+            계산식: ((역등록순위점수×0.30 + 역암송순위점수×0.50 + 역사용적음순위점수×0.20) × 0.60) + (역수호실패적음순위점수×0.40)
         </small>
     </div>
 
@@ -491,6 +491,7 @@ else
         var recitedRankMap = rankByRecited.ToDictionary(x => x.GroupId, x => x.Rank);
         var usedLeastRankMap = rankByUsedLeast.ToDictionary(x => x.GroupId, x => x.Rank);
         var failureLeastRankMap = rankByGuardFailureLeast.ToDictionary(x => x.GroupId, x => x.Rank);
+        var groupCount = Math.Max(groups.Count, 1);
 
         overallRankings = groups
             .Select(group =>
@@ -500,8 +501,13 @@ else
                 var usedLeastRank = usedLeastRankMap.TryGetValue(group.Id, out var used) ? used : groups.Count;
                 var failureLeastRank = failureLeastRankMap.TryGetValue(group.Id, out var fail) ? fail : groups.Count;
 
-                var preFinalScore = (registrationRank * 0.30) + (recitedRank * 0.50) + (usedLeastRank * 0.20);
-                var finalScore = (preFinalScore * 0.60) + (failureLeastRank * 0.40);
+                var registrationScore = (groupCount + 1) - registrationRank;
+                var recitedScore = (groupCount + 1) - recitedRank;
+                var usedLeastScore = (groupCount + 1) - usedLeastRank;
+                var failureLeastScore = (groupCount + 1) - failureLeastRank;
+
+                var preFinalScore = (registrationScore * 0.30) + (recitedScore * 0.50) + (usedLeastScore * 0.20);
+                var finalScore = (preFinalScore * 0.60) + (failureLeastScore * 0.40);
 
                 return new OverallRank
                 {
@@ -515,8 +521,8 @@ else
                     FinalScore = finalScore
                 };
             })
-            .OrderBy(x => x.FinalScore)
-            .ThenBy(x => x.PreFinalScore)
+            .OrderByDescending(x => x.FinalScore)
+            .ThenByDescending(x => x.PreFinalScore)
             .ThenBy(x => x.GroupName)
             .ToList();
 
