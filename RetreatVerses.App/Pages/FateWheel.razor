@@ -153,10 +153,12 @@
     {
         var slices = new List<string>();
         double cursorPercent = 0;
+        var totalWeight = Items.Sum(i => i.Weight);
 
         foreach (var item in Items)
         {
-            var nextPercent = cursorPercent + item.Weight;
+            var segmentPercent = (item.Weight * 100.0) / totalWeight;
+            var nextPercent = cursorPercent + segmentPercent;
             slices.Add($"{item.Color} {cursorPercent:F3}% {nextPercent:F3}%");
             cursorPercent = nextPercent;
         }
