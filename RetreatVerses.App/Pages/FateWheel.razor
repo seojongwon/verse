@@ -26,7 +26,6 @@
     </div>
 
     <div class="fate-wheel__charge">
-        <div class="fate-wheel__charge-label">게이지 @($"{chargePercent:0}")%</div>
         <div class="fate-wheel__charge-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@chargePercent">
             <div class="fate-wheel__charge-fill" style="width:@($"{chargePercent:0}%")"></div>
         </div>
@@ -77,7 +76,7 @@
     private int spinDurationMs = 4600;
     private CancellationTokenSource? chargeCts;
 
-    private string WheelStyle => $"transform: rotate({rotationDegrees}deg); background: {BuildWheelBackground()}; transition-duration: {spinDurationMs}ms;";
+    private string WheelStyle => $"transform: rotate({rotationDegrees}deg); background: {BuildWheelBackground()}; transition: transform {spinDurationMs}ms cubic-bezier(0.08, 0.82, 0.14, 1);";
 
     private IReadOnlyList<LabelInfo> LabelPositions
     {
@@ -143,8 +142,8 @@
         isCharging = false;
 
         var chargeRatio = chargePercent / 100.0;
-        spinDurationMs = (int)Math.Round(5200 - (chargeRatio * 2800)); // Full charge -> faster spin.
-        var fullSpins = 4 + (int)Math.Round(chargeRatio * 4);
+        spinDurationMs = (int)Math.Round(5200 - (chargeRatio * 3400)); // Full charge -> faster and shorter overall spin.
+        var fullSpins = 6;
         await SpinAsync(fullSpins, spinDurationMs);
     }
 

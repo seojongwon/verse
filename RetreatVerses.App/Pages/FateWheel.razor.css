@@ -169,14 +169,7 @@
 
 .fate-wheel__charge {
     width: min(86vw, 420px);
-    margin-top: 0.4rem;
-}
-
-.fate-wheel__charge-label {
-    font-size: 0.84rem;
-    font-weight: 700;
-    color: var(--md-sys-color-on-surface-variant);
-    margin-bottom: 0.25rem;
+    margin-top: 0.25rem;
 }
 
 .fate-wheel__charge-track {
